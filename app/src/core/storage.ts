@@ -16,6 +16,9 @@ export interface Settings {
   name: string;
   leaderboard: boolean;
   haptics: boolean;
+  /** audio lead in ms — how early to schedule sound so it is HEARD on time.
+   *  -1 = auto-detect from the device's reported output latency. */
+  audioLeadMs: number;
 }
 
 export interface Save {
@@ -50,6 +53,7 @@ function defaults(): Save {
       name: '',
       leaderboard: false,
       haptics: true,
+      audioLeadMs: -1,
     },
   };
 }

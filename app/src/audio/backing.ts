@@ -74,7 +74,8 @@ export class Backing {
         this.stop();
         return;
       }
-      const t = this.beatToTime(beat);
+      // schedule early by the audio lead so the beat is HEARD on the beat
+      const t = this.beatToTime(beat) - audio.lead;
       if (t >= ctx.currentTime - 0.05) {
         this.scheduleBeat(song, beat, t, spb);
       }

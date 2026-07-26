@@ -5,6 +5,7 @@
 import './styles/main.css';
 import { router, type ScreenId } from './core/router';
 import { unlockEverything } from './core/storage';
+import { initPlatform, setBackHandler, setPauseHandler } from './core/platform';
 import { SPECIES, OUTFITS } from './data/animals';
 import { SONGS } from './data/songs';
 import { audio } from './audio/engine';
@@ -46,6 +47,18 @@ router.go = (screen: ScreenId) => {
   cleanup = SCREENS[screen](root);
   root.querySelector('.screen')?.classList.add('screen-enter');
   menuMusic.start();
+  // hardware back: close any open overlay, else go home; on home let it exit
+  setBackHandler(() => {
+    const overlay = document.querySelector('.overlay');
+    if (overlay) {
+      overlay.remove();
+      return true;
+    }
+    if (screen === 'home') return false;
+    router.go('home');
+    return true;
+  });
+  setPauseHandler(() => menuMusic.stop());
 };
 
 router.play = (songId: string) => {
@@ -72,6 +85,8 @@ const unlock = () => {
   window.removeEventListener('pointerdown', unlock);
 };
 window.addEventListener('pointerdown', unlock);
+
+void initPlatform();
 
 // Load locally-created custom characters, then boot the UI.
 import('./core/customChars')

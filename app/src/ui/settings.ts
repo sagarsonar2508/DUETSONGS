@@ -8,6 +8,7 @@ import { SPECIES, OUTFITS } from '../data/animals';
 import { SONGS } from '../data/songs';
 import { audio } from '../audio/engine';
 import { uiSound } from '../audio/instruments';
+
 import { topbar, modal, toast, refreshCoins } from './components';
 
 export function renderSettings(root: HTMLElement): () => void {
@@ -28,6 +29,10 @@ export function renderSettings(root: HTMLElement): () => void {
           <span>Haptics</span>
           <input type="checkbox" class="switch" ${s.haptics ? 'checked' : ''} data-k="haptics" />
         </label>
+        <div class="setting-row setting-row-btn" data-act="calibrate">
+          <span>Audio sync<br/><small class="lead-label"></small></span>
+          <span class="setting-cta">Calibrate ›</span>
+        </div>
         <div class="setting-divider"></div>
         <label class="setting-row">
           <span>Player name</span>
@@ -64,6 +69,22 @@ export function renderSettings(root: HTMLElement): () => void {
       persist();
     }),
   );
+
+  const refreshLead = (): void => {
+    const el = root.querySelector('.lead-label');
+    if (el) {
+      el.textContent =
+        s.audioLeadMs >= 0
+          ? `${s.audioLeadMs} ms (calibrated)`
+          : `${audio.autoLeadMs} ms (automatic)`;
+    }
+  };
+  refreshLead();
+
+  root.querySelector('[data-act="calibrate"]')!.addEventListener('click', () => {
+    uiSound('tap');
+    void import('./calibration').then((m) => m.openCalibration(refreshLead));
+  });
 
   root.querySelector('[data-act="unlockall"]')!.addEventListener('click', () => {
     unlockEverything(

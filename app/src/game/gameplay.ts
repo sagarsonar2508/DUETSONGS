@@ -27,6 +27,7 @@ import {
   equippedOutfit,
 } from '../core/storage';
 import { isCustomChar, playCustomVoice } from '../core/customChars';
+import { setBackHandler, setPauseHandler, keepAwake, haptic } from '../core/platform';
 import { drawAnimal, drawTreat, drawHoldTreat } from './art';
 import { Particles } from './particles';
 import { showResults } from '../ui/results';
@@ -42,6 +43,9 @@ interface LiveNote extends ChartNote {
   x: number;
   status: 'pending' | 'active' | 'holding' | 'caught' | 'missed' | 'skipped';
   handle?: VoiceHandle;
+  /** the voice was scheduled early (predictively) so it is heard on the beat */
+  voiceScheduled?: boolean;
+  presung?: boolean;
 }
 
 export interface GameResult {
@@ -174,6 +178,14 @@ export class Game {
     this.canvas.addEventListener('pointercancel', this.onPointerUp);
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
+
+    // native integration: back button pauses, backgrounding pauses, screen stays on
+    setBackHandler(() => {
+      this.pause();
+      return true;
+    });
+    setPauseHandler(() => this.pause());
+    keepAwake(true);
 
     this.resize();
     this.buildNotes();
@@ -341,16 +353,28 @@ export class Game {
 
     // notes
     const radius = this.animalSize() * 0.8;
+    const lead = audio.lead;
     for (const n of this.notes) {
       if (n.status === 'pending' && t >= n.time - this.fallDur) {
         n.status = 'active';
         n.x = this.noteX(n);
+      }
+      // Predictive sing: schedule the voice `lead` early so it is HEARD at the
+      // exact moment the treat lands, in time with the backing band.
+      if (n.status === 'active' && !n.voiceScheduled && t >= n.time - lead) {
+        n.voiceScheduled = true;
+        if (Math.abs(this.animX[n.lane] - n.x) <= radius) {
+          n.handle = this.singNote(n, this.startTime + n.time - lead, true);
+          n.presung = true;
+        }
       }
       if (n.status === 'active' && t >= n.time) {
         const dist = Math.abs(this.animX[n.lane] - n.x);
         if (dist <= radius) {
           this.onCatch(n, dist / radius, t);
         } else {
+          // moved away after the voice was already queued — fade it out
+          if (n.presung) n.handle?.stop();
           n.status = 'missed';
           this.onMiss(n);
         }
@@ -411,22 +435,27 @@ export class Game {
     el.classList.add('pop');
   }
 
+  /** Sing one chart note in the lane character's voice. `when` 0 = now. */
+  private singNote(n: LiveNote, when: number, strong: boolean): VoiceHandle {
+    const def = this.animals[n.lane];
+    const vel = strong ? 1 : 0.85;
+    return isCustomChar(def.id)
+      ? playCustomVoice(def.id, n.midi, { when, dur: n.durSec, vel })
+      : playPatch(def.patch, n.midi + def.pitchOffset, {
+          when,
+          dur: n.durSec,
+          vel,
+          bright: def.bright,
+        });
+  }
+
   private onCatch(n: LiveNote, distRatio: number, t: number): void {
     const isPerfect = distRatio < 0.45;
     const def = this.animals[n.lane];
-    // schedule at the exact chart time so the melody stays locked to the band
-    const handle = isCustomChar(def.id)
-      ? playCustomVoice(def.id, n.midi, {
-          when: this.startTime + n.time,
-          dur: n.durSec,
-          vel: isPerfect ? 1 : 0.85,
-        })
-      : playPatch(def.patch, n.midi + def.pitchOffset, {
-          when: this.startTime + n.time,
-          dur: n.durSec,
-          vel: isPerfect ? 1 : 0.85,
-          bright: def.bright,
-        });
+    // already queued predictively? keep it — otherwise sing now (arrived late)
+    const handle = n.presung
+      ? n.handle!
+      : this.singNote(n, 0, isPerfect);
 
     this.combo += 1;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
@@ -464,7 +493,7 @@ export class Game {
       void comboEl.offsetWidth;
       comboEl.classList.add('pop');
     }
-    if (save.settings.haptics && navigator.vibrate) navigator.vibrate(8);
+    haptic('catch');
     void t;
   }
 
@@ -483,7 +512,7 @@ export class Game {
       h.classList.toggle('lost', i >= this.hearts);
     });
     (this.hud.querySelector('.hud-combo') as HTMLElement).textContent = '';
-    if (save.settings.haptics && navigator.vibrate) navigator.vibrate([40, 30, 40]);
+    haptic('miss');
     void n;
     if (this.hearts <= 0) {
       this.failScreen();
@@ -804,6 +833,9 @@ export class Game {
     this.backing.stop();
     for (const n of this.notes) n.handle?.stop();
     void audio.resume();
+    setBackHandler(null);
+    setPauseHandler(null);
+    keepAwake(false);
     window.removeEventListener('resize', this.resize);
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);

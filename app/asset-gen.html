@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Asset Generator</title>
+    <style>
+      body { margin: 0; background: #222; color: #fff; font-family: system-ui; }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px; }
+      figure { margin: 0; text-align: center; font-size: 11px; }
+      canvas { background: #444; }
+      #icon, #iconFg, #iconBg { width: 180px; height: 180px; }
+      #splash, #splashDark { width: 180px; height: 180px; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <figure><canvas id="icon" width="1024" height="1024"></canvas><figcaption>icon</figcaption></figure>
+      <figure><canvas id="iconFg" width="1024" height="1024"></canvas><figcaption>icon-foreground</figcaption></figure>
+      <figure><canvas id="iconBg" width="1024" height="1024"></canvas><figcaption>icon-background</figcaption></figure>
+      <figure><canvas id="splash" width="2732" height="2732"></canvas><figcaption>splash</figcaption></figure>
+      <figure><canvas id="splashDark" width="2732" height="2732"></canvas><figcaption>splash-dark</figcaption></figure>
+    </div>
+    <div id="ready">rendering…</div>
+    <script type="module" src="/src/assetgen.ts"></script>
+  </body>
+</html>

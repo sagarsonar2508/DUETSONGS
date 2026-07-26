@@ -72,6 +72,28 @@ class AudioEngine {
     return this.ctx.currentTime;
   }
 
+  /**
+   * How far ahead (seconds) sound must be scheduled so it is *heard* at the
+   * intended moment. Uses the player's calibrated value, or the device's
+   * reported output latency when set to auto.
+   */
+  get lead(): number {
+    const ms = save.settings.audioLeadMs;
+    if (ms >= 0) return Math.min(0.3, ms / 1000);
+    const ctx = this.ensure();
+    const reported = (ctx as { outputLatency?: number }).outputLatency ?? 0;
+    const est = reported > 0.001 ? reported : ctx.baseLatency * 2;
+    return Math.min(0.3, Math.max(0, est));
+  }
+
+  /** Auto-detected lead in ms, for display in the settings UI. */
+  get autoLeadMs(): number {
+    const ctx = this.ensure();
+    const reported = (ctx as { outputLatency?: number }).outputLatency ?? 0;
+    const est = reported > 0.001 ? reported : ctx.baseLatency * 2;
+    return Math.round(Math.min(0.3, Math.max(0, est)) * 1000);
+  }
+
   async pause(): Promise<void> {
     if (this._ctx && this._ctx.state === 'running') {
       await this._ctx.suspend();

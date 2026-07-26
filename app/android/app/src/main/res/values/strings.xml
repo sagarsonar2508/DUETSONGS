@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Animal Duet</string>
+    <string name="title_activity_main">Animal Duet</string>
+    <string name="package_name">media.gsharp.animalduet</string>
+    <string name="custom_url_scheme">media.gsharp.animalduet</string>
+</resources>

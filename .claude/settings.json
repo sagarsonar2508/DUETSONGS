@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node diag.mjs)",
+      "Bash(node drive2.mjs)",
+      "Read(//Users/sagar/Library/Android/sdk/build-tools/**)",
+      "Read(//Users/sagar/Library/Android/sdk/cmdline-tools/**)",
+      "Read(//Users/sagar/Library/Android/sdk/licenses/**)",
+      "Bash(npm run *)",
+      "Bash(npx cap *)"
+    ]
+  }
+}

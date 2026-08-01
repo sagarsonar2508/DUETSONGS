@@ -2,7 +2,7 @@
 
 ## Content authoring (all tooling ready — use the studio: `npm run dev` → /admin.html)
 
-- [ ] **Song posters** — 8 songs, all still on gradient cards. Upload square art
+- [ ] **Song posters** — 16 songs, all still on gradient cards. Upload square art
       per song (Songs tab → drop image → auto-cropped to 512×512).
 - [ ] **Custom character art** — all 24 characters are on the built-in vector
       templates. Optional Midjourney pass: up to 48 images (idle + sing per
@@ -26,7 +26,10 @@
       needs a keystore + signing config (`android/app/build.gradle`) and an
       `assembleRelease`/`bundleRelease` step.
 - [ ] **Play Store listing** — mic-usage disclosure (RECORD_AUDIO is used by
-      "Create your Star", audio stays on-device), privacy policy URL.
+      "Create your Star", audio stays on-device), privacy policy URL. For the
+      song-import feature: describe it as "play your own music files" only
+      (never name copyrighted songs/artists), and never add any in-app way to
+      download/rip music — file picker only.
 - [ ] **iOS** — not set up at all (Android only). `npx cap add ios` when ready.
 - [ ] **Device test pass** — install the APK on a real phone: audio latency
       (Settings → calibration), mic recording, custom stars surviving app

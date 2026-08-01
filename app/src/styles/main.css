@@ -369,6 +369,87 @@ button {
   font-size: 18px;
 }
 
+/* ------------------------- your songs (imported) ---------------------- */
+
+.song-section {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 10px 4px 0;
+}
+
+.song-card { position: relative; }
+
+.song-del {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: var(--card-solid);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.song-import {
+  background: rgba(255, 255, 255, 0.55);
+  border: 2.5px dashed rgba(140, 110, 160, 0.4);
+  box-shadow: none;
+}
+
+.song-import-plus {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary-deep);
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 14px;
+}
+
+.import-panel { text-align: center; }
+
+.import-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin: 4px 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(140, 110, 160, 0.18);
+  overflow: hidden;
+}
+
+.import-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-deep));
+  transition: width 0.25s ease;
+}
+
+.import-stage {
+  margin: 8px 0 10px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
 .diff-dots {
   display: inline-flex;
   gap: 3px;
@@ -1230,4 +1311,193 @@ button {
 .calib-result small {
   color: var(--ink-soft);
   font-weight: 700;
+}
+
+/* ------------------------------ daily card ---------------------------- */
+
+.daily-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--card);
+  border-radius: var(--radius-m);
+  padding: 10px 14px;
+  box-shadow: var(--shadow);
+  text-align: left;
+  margin-bottom: 8px;
+  transition: transform 0.12s;
+}
+
+.daily-card:active { transform: scale(0.97); }
+.daily-card.done { opacity: 0.75; }
+
+.daily-icon { font-size: 22px; }
+
+.daily-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.daily-text b { font-size: 14.5px; }
+.daily-text small {
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.daily-reward {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--primary-deep);
+  white-space: nowrap;
+}
+
+/* ------------------------------ mode chips ----------------------------- */
+
+.mode-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mode-chip {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 999px;
+  background: var(--card);
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  box-shadow: var(--shadow);
+  transition: transform 0.1s;
+}
+
+.mode-chip:active { transform: scale(0.95); }
+
+.mode-chip.on {
+  background: linear-gradient(180deg, var(--primary), var(--primary-deep));
+  color: #fff;
+}
+
+.mode-chip.twop.on {
+  background: linear-gradient(180deg, #7bb8f0, #5aa7e8);
+}
+
+.variant-row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+/* --------------------------- results extras --------------------------- */
+
+.twop-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 800;
+  margin: 6px 0 2px;
+}
+
+.twop-side { padding: 4px 10px; border-radius: 999px; }
+.twop-side.p1 { background: rgba(231, 95, 150, 0.14); color: var(--primary-deep); }
+.twop-side.p2 { background: rgba(90, 167, 232, 0.16); color: #3f7dbd; }
+.twop-vs { font-size: 15px; }
+
+.bonus-line {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+.bonus-line b { color: var(--gold); }
+
+/* ------------------------------- awards -------------------------------- */
+
+.award-summary {
+  text-align: center;
+  font-weight: 800;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+
+.award-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.award-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border-radius: var(--radius-m);
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+}
+
+.award-row.done { background: rgba(255, 255, 255, 0.92); }
+
+.award-icon { font-size: 26px; }
+
+.award-main { flex: 1; min-width: 0; }
+.award-name { font-weight: 800; font-size: 15px; }
+.award-desc { color: var(--ink-soft); font-size: 12.5px; font-weight: 700; }
+
+.award-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(120, 80, 140, 0.14);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.award-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--gold));
+}
+
+.award-side {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.award-check { color: #2e9e5b; font-weight: 800; font-size: 18px; }
+.award-progress { font-weight: 800; font-size: 13px; color: var(--ink-soft); }
+.award-reward { font-weight: 800; font-size: 12.5px; color: var(--gold); }
+
+/* --------------------------- creator voice pick ------------------------ */
+
+.voice-or {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin: 8px 0 4px;
+}
+
+.patch-pick {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 7px 10px;
+  max-width: 100%;
 }

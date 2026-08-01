@@ -245,7 +245,189 @@ export const SONGS: SongDef[] = [
       E5/0.5 C5/0.5 D5/0.5 E5/1 B4/0.5 D5/1 | C5/2 R/2
     `,
   },
+  {
+    id: 'birthday',
+    title: 'Happy Birthday',
+    composer: 'Traditional',
+    bpm: 92,
+    beatsPerBar: 3,
+    difficulty: 1,
+    cost: 200,
+    theme: { top: '#ffd9ec', bottom: '#fff1b8', accent: '#e792b4' },
+    chords: ['C', 'C', 'G', 'G', 'C', 'C', 'F', 'G', 'C'],
+    melody: `
+      G4/0.5 G4/0.5 | A4 G4 C5 | B4/2 G4/0.5 G4/0.5 | A4 G4 D5 | C5/2 G4/0.5 G4/0.5 |
+      G5 E5 C5 | B4 A4 F5/0.5 F5/0.5 | E5 C5 D5 | C5/2 R G4/0.5 G4/0.5 |
+      A4 G4 C5 | B4/2 G4/0.5 G4/0.5 | A4 G4 D5 | C5/2 G4/0.5 G4/0.5 |
+      G5 E5 C5 | B4 A4 F5/0.5 F5/0.5 | E5 C5 D5 | C5/2
+    `,
+  },
+  {
+    id: 'row',
+    title: 'Row Your Boat',
+    composer: 'Traditional',
+    bpm: 88,
+    beatsPerBar: 4,
+    difficulty: 1,
+    cost: 200,
+    theme: { top: '#c9e9f6', bottom: '#b8e6d0', accent: '#5fa8c9' },
+    chords: ['C', 'C', 'C', 'C'],
+    melody: `
+      C4 C4 C4/0.75 D4/0.25 E4 | E4/0.75 D4/0.25 E4/0.75 F4/0.25 G4/2 |
+      C5/0.33 C5/0.33 C5/0.34 G4/0.33 G4/0.33 G4/0.34 E4/0.33 E4/0.33 E4/0.34 C4/0.33 C4/0.33 C4/0.34 |
+      G4/0.75 F4/0.25 E4/0.75 D4/0.25 C4/2 |
+      C4 C4 C4/0.75 D4/0.25 E4 | E4/0.75 D4/0.25 E4/0.75 F4/0.25 G4/2 |
+      C5/0.33 C5/0.33 C5/0.34 G4/0.33 G4/0.33 G4/0.34 E4/0.33 E4/0.33 E4/0.34 C4/0.33 C4/0.33 C4/0.34 |
+      G4/0.75 F4/0.25 E4/0.75 D4/0.25 C4/2 |
+      C4 C4 C4/0.75 D4/0.25 E4 | E4/0.75 D4/0.25 E4/0.75 F4/0.25 G4/2 |
+      C5/0.33 C5/0.33 C5/0.34 G4/0.33 G4/0.33 G4/0.34 E4/0.33 E4/0.33 E4/0.34 C4/0.33 C4/0.33 C4/0.34 |
+      G4/0.75 F4/0.25 E4/0.75 D4/0.25 C4/2
+    `,
+  },
+  {
+    id: 'london',
+    title: 'London Bridge',
+    composer: 'Traditional',
+    bpm: 104,
+    beatsPerBar: 4,
+    difficulty: 1,
+    cost: 400,
+    theme: { top: '#e8e3fb', bottom: '#ffd9ec', accent: '#9a82cf' },
+    chords: ['C', 'C', 'G', 'C', 'C', 'C', 'G', 'C'],
+    melody: `
+      G4/1.5 A4/0.5 G4 F4 | E4 F4 G4/2 | D4 E4 F4/2 | E4 F4 G4/2 |
+      G4/1.5 A4/0.5 G4 F4 | E4 F4 G4/2 | D4/2 G4/2 | E4 C4/3
+    `,
+  },
+  {
+    id: 'yankee',
+    title: 'Yankee Doodle',
+    composer: 'Traditional',
+    bpm: 120,
+    beatsPerBar: 4,
+    difficulty: 1,
+    cost: 400,
+    theme: { top: '#c9d7f4', bottom: '#f9c8c8', accent: '#7f9ce0' },
+    chords: [
+      'C', 'G', 'C', 'G', 'C', 'F', 'G', 'C',
+      'F', 'C', 'F', 'C', 'F', 'C', 'G', 'C',
+    ],
+    melody: `
+      C4 C4 D4 E4 | C4 E4 D4 G3 | C4 C4 D4 E4 | C4/2 B3/2 |
+      C4 C4 D4 E4 | F4 E4 D4 C4 | B3 G3 A3 B3 | C4/2 C4/2 |
+      A3/1.5 B3/0.5 A3 G3 | A3 B3 C4/2 | G3/1.5 A3/0.5 G3 F3 | E3/2 G3/2 |
+      A3/1.5 B3/0.5 A3 G3 | A3 B3 C4 A3 | G3 C4 B3 D4 | C4/2 C4/2
+    `,
+  },
+  {
+    id: 'jingle',
+    title: 'Jingle Bells',
+    composer: 'J. Pierpont',
+    bpm: 126,
+    beatsPerBar: 4,
+    difficulty: 2,
+    cost: 600,
+    theme: { top: '#d8f0e2', bottom: '#f9c8c8', accent: '#d9534f' },
+    chords: [
+      'C', 'C', 'C', 'C', 'F', 'C', 'G', 'G',
+      'C', 'C', 'C', 'C', 'F', 'C', 'G', 'C',
+    ],
+    melody: `
+      E4 E4 E4/2 | E4 E4 E4/2 | E4 G4 C4/1.5 D4/0.5 | E4/4 |
+      F4 F4 F4/1.5 F4/0.5 | F4 E4 E4 E4/0.5 E4/0.5 | E4 D4 D4 E4 | D4/2 G4/2 |
+      E4 E4 E4/2 | E4 E4 E4/2 | E4 G4 C4/1.5 D4/0.5 | E4/4 |
+      F4 F4 F4/1.5 F4/0.5 | F4 E4 E4 E4/0.5 E4/0.5 | G4 G4 F4 D4 | C4/2 R/2
+    `,
+  },
+  {
+    id: 'silent',
+    title: 'Silent Night',
+    composer: 'F. Gruber',
+    bpm: 90,
+    beatsPerBar: 3,
+    difficulty: 2,
+    cost: 600,
+    theme: { top: '#dfe3f8', bottom: '#c9d7f4', accent: '#8d76bd' },
+    chords: [
+      'C', 'C', 'C', 'C', 'G', 'G', 'C', 'C',
+      'F', 'F', 'C', 'C', 'F', 'F', 'C', 'C',
+      'G', 'G', 'C', 'C', 'C', 'G', 'C', 'C',
+    ],
+    melody: `
+      G4/1.5 A4/0.5 G4 | E4/3 | G4/1.5 A4/0.5 G4 | E4/3 |
+      D5/2 D5 | B4/3 | C5/2 C5 | G4/3 |
+      A4/2 A4 | C5/1.5 B4/0.5 A4 | G4/1.5 A4/0.5 G4 | E4/3 |
+      A4/2 A4 | C5/1.5 B4/0.5 A4 | G4/1.5 A4/0.5 G4 | E4/3 |
+      D5/2 D5 | F5/1.5 D5/0.5 B4 | C5/3 | E5/3 |
+      C5 G4 E4 | G4/1.5 F4/0.5 D4 | C4/3 | R/3
+    `,
+  },
+  {
+    id: 'korobeiniki',
+    title: 'Korobeiniki',
+    composer: 'Russian folk',
+    bpm: 130,
+    beatsPerBar: 4,
+    difficulty: 3,
+    cost: 800,
+    theme: { top: '#f9c8c8', bottom: '#ffe3a3', accent: '#d9534f' },
+    chords: [
+      'Am', 'Am', 'E', 'Am', 'Dm', 'Am', 'E', 'Am',
+      'Am', 'Am', 'E', 'Am', 'Dm', 'Am', 'E', 'Am',
+    ],
+    melody: `
+      E5 B4/0.5 C5/0.5 D5 C5/0.5 B4/0.5 | A4 A4/0.5 C5/0.5 E5 D5/0.5 C5/0.5 |
+      B4/1.5 C5/0.5 D5 E5 | C5 A4 A4 R |
+      R/0.5 D5 F5/0.5 A5 G5/0.5 F5/0.5 | E5/1.5 C5/0.5 E5 D5/0.5 C5/0.5 |
+      B4/1.5 C5/0.5 D5 E5 | C5 A4 A4 R |
+      E5 B4/0.5 C5/0.5 D5 C5/0.5 B4/0.5 | A4 A4/0.5 C5/0.5 E5 D5/0.5 C5/0.5 |
+      B4/1.5 C5/0.5 D5 E5 | C5 A4 A4 R |
+      R/0.5 D5 F5/0.5 A5 G5/0.5 F5/0.5 | E5/1.5 C5/0.5 E5 D5/0.5 C5/0.5 |
+      B4/1.5 C5/0.5 D5 E5 | C5 A4 A4/2
+    `,
+  },
+  {
+    id: 'mountain',
+    title: 'Mountain King',
+    composer: 'E. Grieg',
+    bpm: 132,
+    beatsPerBar: 2,
+    difficulty: 3,
+    cost: 1000,
+    theme: { top: '#b8e6d0', bottom: '#c9d7f4', accent: '#4f8a6e' },
+    chords: [
+      'Am', 'Am', 'E', 'Am', 'Am', 'Am', 'C', 'C',
+      'Em', 'Em', 'B', 'Em', 'Em', 'Em', 'G', 'G',
+    ],
+    melody: `
+      A3/0.5 B3/0.5 C4/0.5 D4/0.5 | E4/0.5 C4/0.5 E4 | D#4/0.5 B3/0.5 D#4 | D4/0.5 B3/0.5 D4 |
+      A3/0.5 B3/0.5 C4/0.5 D4/0.5 | E4/0.5 C4/0.5 E4/0.5 A4/0.5 | G4/0.5 E4/0.5 C4/0.5 E4/0.5 | G4/2 |
+      E4/0.5 F#4/0.5 G4/0.5 A4/0.5 | B4/0.5 G4/0.5 B4 | A#4/0.5 F#4/0.5 A#4 | A4/0.5 F#4/0.5 A4 |
+      E4/0.5 F#4/0.5 G4/0.5 A4/0.5 | B4/0.5 G4/0.5 B4/0.5 E5/0.5 | D5/0.5 B4/0.5 G4/0.5 B4/0.5 | D5/2 |
+      A3/0.5 B3/0.5 C4/0.5 D4/0.5 | E4/0.5 C4/0.5 E4 | D#4/0.5 B3/0.5 D#4 | D4/0.5 B3/0.5 D4 |
+      A3/0.5 B3/0.5 C4/0.5 D4/0.5 | E4/0.5 C4/0.5 E4/0.5 A4/0.5 | G4/0.5 E4/0.5 C4/0.5 E4/0.5 | G4/2 |
+      E4/0.5 F#4/0.5 G4/0.5 A4/0.5 | B4/0.5 G4/0.5 B4 | A#4/0.5 F#4/0.5 A#4 | A4/0.5 F#4/0.5 A4 |
+      E4/0.5 F#4/0.5 G4/0.5 A4/0.5 | B4/0.5 G4/0.5 B4/0.5 E5/0.5 | D5/0.5 B4/0.5 G4/0.5 B4/0.5 | D5/2
+    `,
+  },
 ];
+
+/**
+ * Runtime song registration (user-imported "play your own song" charts).
+ * Called at boot / after import, before any screen renders the list.
+ */
+export function registerSongs(defs: SongDef[]): void {
+  for (const def of defs) {
+    const i = SONGS.findIndex((s) => s.id === def.id);
+    if (i >= 0) SONGS[i] = def;
+    else SONGS.push(def);
+  }
+}
+
+export function unregisterSong(id: string): void {
+  const i = SONGS.findIndex((s) => s.id === id);
+  if (i >= 0) SONGS.splice(i, 1);
+}
 
 export function songById(id: string): SongDef {
   const s = SONGS.find((x) => x.id === id);

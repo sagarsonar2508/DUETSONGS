@@ -29,6 +29,14 @@ export function renderSettings(root: HTMLElement): () => void {
           <span>Haptics</span>
           <input type="checkbox" class="switch" ${s.haptics ? 'checked' : ''} data-k="haptics" />
         </label>
+        <label class="setting-row">
+          <span>Treat fall speed<br/><small>slower ↔ faster</small></span>
+          <input type="range" min="0.8" max="1.3" step="0.05" value="${s.noteSpeed}" data-k="noteSpeed" />
+        </label>
+        <label class="setting-row">
+          <span>Swap touch sides<br/><small>left half moves the right star</small></span>
+          <input type="checkbox" class="switch" ${s.swapSides ? 'checked' : ''} data-k="swapSides" />
+        </label>
         <div class="setting-row setting-row-btn" data-act="calibrate">
           <span>Audio sync<br/><small class="lead-label"></small></span>
           <span class="setting-cta">Calibrate ›</span>
@@ -61,7 +69,13 @@ export function renderSettings(root: HTMLElement): () => void {
         s[k] = parseFloat(input.value);
         audio.applyVolumes();
         uiSound('tap');
-      } else if (input.type === 'checkbox' && (k === 'haptics' || k === 'leaderboard')) {
+      } else if (input.type === 'range' && k === 'noteSpeed') {
+        s.noteSpeed = parseFloat(input.value);
+        uiSound('tap');
+      } else if (
+        input.type === 'checkbox' &&
+        (k === 'haptics' || k === 'leaderboard' || k === 'swapSides')
+      ) {
         s[k] = input.checked;
       } else if (k === 'name') {
         s.name = input.value;

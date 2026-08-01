@@ -5,6 +5,8 @@
 import { router } from '../core/router';
 import { branding } from '../core/content';
 import { save } from '../core/storage';
+import { dailyChallenge, tickLoginStreak } from '../core/daily';
+import { toast } from './components';
 import { animalById } from '../data/animals';
 import { drawAnimal } from '../game/art';
 import { uiSound, animalRiff } from '../audio/instruments';
@@ -23,7 +25,10 @@ function titleHtml(title: string): string {
     : escapeHtml(first);
 }
 
+let streakChecked = false;
+
 export function renderHome(root: HTMLElement): () => void {
+  const daily = dailyChallenge();
   root.innerHTML = `
     <div class="screen home-screen">
       <div class="topbar">
@@ -37,13 +42,42 @@ export function renderHome(root: HTMLElement): () => void {
         <div class="home-tagline">${escapeHtml(branding.tagline)}</div>
       </div>
       <canvas class="duo-stage" width="10" height="10"></canvas>
+      <button class="daily-card ${daily.done ? 'done' : ''}" id="dailyCard">
+        <span class="daily-icon">🗓</span>
+        <span class="daily-text">
+          <b>Daily Duet${daily.done ? ' · done today ✓' : ''}</b>
+          <small>${escapeHtml(daily.song.title)} with ${escapeHtml(daily.left.name)} & ${escapeHtml(daily.right.name)}</small>
+        </span>
+        <span class="daily-reward">${daily.done ? '✓' : `<span class="coin-ico">●</span> +${daily.reward}`}</span>
+      </button>
       <button class="btn btn-play">▶&nbsp; Play</button>
       <div class="home-nav">
         <button class="nav-card" data-go="songs"><span class="nav-emoji">🎵</span><span>Songs</span></button>
         <button class="nav-card" data-go="animals"><span class="nav-emoji">⭐</span><span>Stars</span></button>
+        <button class="nav-card" data-go="awards"><span class="nav-emoji">🏆</span><span>Awards</span></button>
         <button class="nav-card" data-go="settings"><span class="nav-emoji">⚙️</span><span>Settings</span></button>
       </div>
     </div>`;
+
+  // daily login streak — once per app session
+  if (!streakChecked) {
+    streakChecked = true;
+    const { reward, count } = tickLoginStreak();
+    if (reward > 0) {
+      setTimeout(
+        () => toast(`🔥 Day ${count} streak — +${reward} coins!`),
+        600,
+      );
+    }
+  }
+
+  document.getElementById('dailyCard')!.addEventListener('click', () => {
+    uiSound('tap');
+    router.play(daily.song.id, {
+      chars: [daily.left.id, daily.right.id],
+      daily: !daily.done,
+    });
+  });
 
   const playBtn = root.querySelector('.btn-play')!;
   playBtn.addEventListener('click', () => {

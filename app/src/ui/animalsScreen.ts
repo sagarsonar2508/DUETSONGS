@@ -11,7 +11,7 @@ import {
   isSpeciesUnlocked,
   unlockSpecies,
 } from '../core/storage';
-import { ANIMALS, animalById, speciesCost } from '../data/animals';
+import { ANIMALS, animalById, speciesCost, type PatchId } from '../data/animals';
 import { drawAnimal } from '../game/art';
 import { uiSound, animalRiff } from '../audio/instruments';
 import { hasVoiceOverride, playOverrideRiff } from '../audio/voiceOverrides';
@@ -213,6 +213,7 @@ export function renderAnimals(root: HTMLElement): () => void {
     let voicePcm: Float32Array | null = null;
     let voiceRate = 44100;
     let baseFreq = 220;
+    let chosenPatch: PatchId | '' = '';
     let recorder: MediaRecorder | null = null;
 
     const host = document.createElement('div');
@@ -244,6 +245,22 @@ export function renderAnimals(root: HTMLElement): () => void {
             <button class="btn-mini rec-btn">● Record</button>
             <button class="btn-mini upl-btn">Upload</button>
             <input type="file" accept="audio/*" hidden class="audio-input"/>
+            <div class="voice-or">— or pick a voice —</div>
+            <select class="patch-pick">
+              <option value="">choose…</option>
+              <option value="meow">🐱 Meow</option>
+              <option value="chirp">🐤 Chirp</option>
+              <option value="bark">🐶 Bark</option>
+              <option value="croak">🐸 Croak</option>
+              <option value="hoot">🦉 Hoot</option>
+              <option value="quack">🦆 Quack</option>
+              <option value="yip">🦊 Yip</option>
+              <option value="grunt">🐼 Grunt</option>
+              <option value="beep">🤖 Beep</option>
+              <option value="boo">👻 Boo</option>
+              <option value="roar">🐲 Roar</option>
+              <option value="twinkle">⭐ Twinkle</option>
+            </select>
           </div>
         </div>
         <div class="creator-status"></div>
@@ -260,9 +277,10 @@ export function renderAnimals(root: HTMLElement): () => void {
       q('.creator-status').textContent = msg;
       q<HTMLElement>('.creator-status').style.color = ok ? '#2e9e5b' : '#c0392b';
     };
+    const hasVoice = (): boolean => !!voicePcm || chosenPatch !== '';
     const refreshButtons = (): void => {
-      (q('[data-act="test"]') as HTMLButtonElement).disabled = !voicePcm;
-      (q('[data-act="create"]') as HTMLButtonElement).disabled = !(photoBlob && voicePcm);
+      (q('[data-act="test"]') as HTMLButtonElement).disabled = !hasVoice();
+      (q('[data-act="create"]') as HTMLButtonElement).disabled = !(photoBlob && hasVoice());
     };
     const close = (): void => {
       recorder?.stream.getTracks().forEach((t) => t.stop());
@@ -384,6 +402,21 @@ export function renderAnimals(root: HTMLElement): () => void {
       void handleAudioBlob(f);
     });
 
+    // ---- voice: built-in patch ----
+    const patchPick = q<HTMLSelectElement>('.patch-pick');
+    patchPick.addEventListener('change', () => {
+      chosenPatch = patchPick.value as PatchId | '';
+      if (chosenPatch) {
+        voicePcm = null; // built-in voice replaces any recording
+        q('.voice-status').textContent = `✓ built-in ${chosenPatch} voice`;
+        setStatus('Built-in voice selected — tap Test to hear it.');
+        animalRiff(chosenPatch, 1.1, 0);
+      } else {
+        q('.voice-status').textContent = 'no sound yet';
+      }
+      refreshButtons();
+    });
+
     async function handleAudioBlob(blob: Blob): Promise<void> {
       try {
         const buf = await audio.ctx.decodeAudioData(await blob.arrayBuffer());
@@ -399,6 +432,8 @@ export function renderAnimals(root: HTMLElement): () => void {
           return;
         }
         voicePcm = conditioned;
+        chosenPatch = '';
+        q<HTMLSelectElement>('.patch-pick').value = '';
         voiceRate = buf.sampleRate;
         baseFreq = detectPitch(conditioned, buf.sampleRate) ?? 220;
         q('.voice-status').textContent =
@@ -412,7 +447,10 @@ export function renderAnimals(root: HTMLElement): () => void {
 
     // ---- test ----
     q('[data-act="test"]').addEventListener('click', () => {
-      if (!voicePcm) return;
+      if (!voicePcm) {
+        if (chosenPatch) animalRiff(chosenPatch, 1.1, 0);
+        return;
+      }
       const ctx = audio.ctx;
       const buffer = ctx.createBuffer(1, voicePcm.length, voiceRate);
       buffer.getChannelData(0).set(voicePcm);
@@ -430,14 +468,17 @@ export function renderAnimals(root: HTMLElement): () => void {
     // ---- create ----
     q('[data-act="create"]').addEventListener('click', () => {
       const name = q<HTMLInputElement>('.creator-name').value.trim() || 'My Star';
-      if (!photoBlob || !voicePcm) return;
+      if (!photoBlob || !hasVoice()) return;
       if (save.coins < CUSTOM_CHAR_COST) {
         toast(`Need ${CUSTOM_CHAR_COST - save.coins} more coins!`);
         return;
       }
       addCoins(-CUSTOM_CHAR_COST);
       uiSound('buy');
-      void createCustomChar(name, photoBlob, photoSingBlob, voicePcm, voiceRate, baseFreq).then((meta) => {
+      const voice = voicePcm
+        ? { pcm: voicePcm, sampleRate: voiceRate, baseFreq }
+        : { patch: chosenPatch as PatchId };
+      void createCustomChar(name, photoBlob, photoSingBlob, voice).then((meta) => {
         if (activeSlot === 0) save.left = meta.id;
         else save.right = meta.id;
         persist();

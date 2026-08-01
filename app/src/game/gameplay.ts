@@ -31,6 +31,9 @@ import {
   recordResult,
   songProgress,
 } from '../core/storage';
+import { completeDaily } from '../core/daily';
+import { checkAchievements } from '../core/achievements';
+import type { PlayOpts } from '../core/router';
 import { isCustomChar, playCustomVoice, customRange } from '../core/customChars';
 import {
   hasVoiceOverride,
@@ -45,6 +48,8 @@ import { showResults } from '../ui/results';
 /** Notes at least this many beats long become hold notes. */
 const HOLD_BEATS = 1.5;
 const COUNT_IN = 3.4;
+/** Sudden death: one miss ends the run (a revive is the only second chance). */
+const MAX_HEARTS = 1;
 
 interface LiveNote extends ChartNote {
   time: number;
@@ -70,6 +75,14 @@ export interface GameResult {
   coins: number;
   cleared: boolean;
   newBest: boolean;
+  /** endless mode: completed loops */
+  loops?: number;
+  /** 2-player: per-lane caught/perfect */
+  twoP?: { caught: [number, number]; perfect: [number, number] };
+  /** daily challenge bonus paid on this clear */
+  dailyBonus?: number;
+  /** achievements earned by this run (name + reward), for the results toastline */
+  awards?: { name: string; reward: number }[];
 }
 
 export interface GameHandlers {
@@ -111,9 +124,18 @@ export class Game {
   private perfect = 0;
   private missed = 0;
   private skipped = 0;
-  private hearts = 3;
+  private hearts = MAX_HEARTS;
   private revived = false;
   private milestonesLit = 0;
+
+  private opts: PlayOpts;
+  private twoP: boolean;
+  private laneCaught: [number, number] = [0, 0];
+  private lanePerfect: [number, number] = [0, 0];
+  /** endless mode: completed loops and current speed multiplier */
+  private endless: boolean;
+  private loop = 0;
+  private speed = 1;
 
   private paused = false;
   private finished = false;
@@ -132,13 +154,19 @@ export class Game {
   private laneRange: [[number, number], [number, number]] = [[48, 72], [48, 72]];
   private wasFirstClear: boolean;
 
-  constructor(root: HTMLElement, songId: string, handlers: GameHandlers) {
+  constructor(root: HTMLElement, songId: string, handlers: GameHandlers, opts: PlayOpts = {}) {
     this.root = root;
     this.song = songById(songId);
     this.handlers = handlers;
-    this.fallDur = FALL_DURATION[this.song.difficulty];
+    this.opts = opts;
+    this.twoP = save.settings.twoPlayer;
+    this.endless = opts.mode === 'endless';
+    this.fallDur = FALL_DURATION[this.song.difficulty] / (save.settings.noteSpeed || 1);
     this.spb = 60 / this.song.bpm;
-    this.animals = [animalById(save.left), animalById(save.right)];
+    this.animals = [
+      animalById(opts.chars?.[0] ?? save.left),
+      animalById(opts.chars?.[1] ?? save.right),
+    ];
     this.wasFirstClear = songProgress(songId).plays === 0;
 
     root.innerHTML = '';
@@ -161,7 +189,7 @@ export class Game {
           <span class="hud-mile" style="left:70%">★</span>
           <span class="hud-mile" style="left:99%">★</span>
         </div>
-        <div class="hud-hearts">${'<span class="hud-heart">♥</span>'.repeat(3)}</div>
+        <div class="hud-hearts">${'<span class="hud-heart">♥</span>'.repeat(MAX_HEARTS)}</div>
       </div>
       <div class="hud-score">0</div>
       <div class="hud-combo"></div>
@@ -299,7 +327,8 @@ export class Game {
 
   private onPointerDown(e: PointerEvent): void {
     if (this.paused || this.finished) return;
-    const side: 0 | 1 = e.clientX < this.W / 2 ? 0 : 1;
+    let side: 0 | 1 = e.clientX < this.W / 2 ? 0 : 1;
+    if (save.settings.swapSides) side = side === 0 ? 1 : 0;
     this.pointers.set(e.pointerId, side);
     this.targetX[side] = this.laneClamp(side, e.clientX);
     this.canvas.setPointerCapture(e.pointerId);
@@ -454,8 +483,38 @@ export class Game {
     });
 
     if (!this.finished && this.now() >= this.endTime) {
-      this.finish(true);
+      if (this.endless) this.nextLoop();
+      else this.finish(true);
     }
+  }
+
+  /** Endless: queue the chart again, a notch faster, and keep going. */
+  private nextLoop(): void {
+    this.loop += 1;
+    this.speed = Math.min(1.6, Math.pow(1.07, this.loop));
+    const loopSpb = this.spb / this.speed;
+    const chart = buildChart(this.song);
+    const offset = this.endTime - this.startTime + 1.2;
+    this.notes = chart.map((n) => ({
+      ...n,
+      time: offset + n.beat * loopSpb,
+      durSec: n.dur * loopSpb,
+      isHold: n.dur >= HOLD_BEATS,
+      x: 0,
+      status: 'pending' as const,
+    }));
+    const last = this.notes[this.notes.length - 1];
+    this.endTime = this.startTime + last.time + last.durSec + 1.6;
+    this.milestonesLit = 0;
+    this.hud.querySelectorAll('.hud-mile').forEach((m) => m.classList.remove('lit'));
+    this.backing.stop();
+    this.backing.start(
+      { ...this.song, bpm: this.song.bpm * this.speed },
+      this.startTime + offset,
+      last.beat + last.dur,
+    );
+    this.popText('.hud-countdown', `Loop ${this.loop + 1} · ×${this.speed.toFixed(2)}`);
+    uiSound('go');
   }
 
   private popText(sel: string, text: string): void {
@@ -497,7 +556,11 @@ export class Game {
     this.combo += 1;
     this.maxCombo = Math.max(this.maxCombo, this.combo);
     this.caught += 1;
-    if (isPerfect) this.perfect += 1;
+    this.laneCaught[n.lane] += 1;
+    if (isPerfect) {
+      this.perfect += 1;
+      this.lanePerfect[n.lane] += 1;
+    }
     const mult = 1 + Math.min(this.combo, 50) / 25;
     const points = Math.round((isPerfect ? 100 : 60) * mult);
     this.score += points;
@@ -634,7 +697,7 @@ export class Game {
     this.revived = true;
     addCoins(-100);
     uiSound('buy');
-    this.hearts = 3;
+    this.hearts = MAX_HEARTS;
     this.hud.querySelectorAll('.hud-heart').forEach((h) => h.classList.remove('lost'));
     this.overlayHost.innerHTML = '';
     void audio.resume().then(() => {
@@ -661,15 +724,33 @@ export class Game {
     const denom = Math.max(1, this.notes.length - this.skipped);
     const accuracy = this.caught / denom;
     let stars = 0;
-    if (cleared) {
+    if (cleared && !this.endless) {
       stars = accuracy >= 0.98 ? 3 : accuracy >= 0.88 ? 2 : 1;
     }
-    let coins = Math.round(this.score / (cleared ? 100 : 200));
-    coins += stars * 20;
-    if (cleared && this.wasFirstClear) coins += 100;
-
-    const { newBest } = recordResult(this.song.id, this.score, stars);
+    let coins: number;
+    let newBest = false;
+    if (this.endless) {
+      coins = Math.round(this.score / 150) + this.loop * 25;
+      save.stats.endlessBestLoops = Math.max(save.stats.endlessBestLoops, this.loop);
+    } else {
+      coins = Math.round(this.score / (cleared ? 100 : 200));
+      coins += stars * 20;
+      if (cleared && this.wasFirstClear) coins += 100;
+      newBest = recordResult(this.song.id, this.score, stars).newBest;
+    }
     addCoins(coins);
+
+    // lifetime stats for achievements
+    save.stats.caught += this.caught;
+    save.stats.perfect += this.perfect;
+    if (cleared && !this.endless) {
+      save.stats.cleared += 1;
+      if (!this.revived && this.skipped === 0) save.stats.flawless += 1;
+    }
+    if (this.twoP) save.stats.twoPlayerGames += 1;
+
+    const dailyBonus = this.opts.daily && cleared ? completeDaily() : 0;
+    const awards = checkAchievements().map((a) => ({ name: a.name, reward: a.reward }));
 
     const result: GameResult = {
       songId: this.song.id,
@@ -683,6 +764,10 @@ export class Game {
       coins,
       cleared,
       newBest,
+      ...(this.endless ? { loops: this.loop } : {}),
+      ...(this.twoP ? { twoP: { caught: this.laneCaught, perfect: this.lanePerfect } } : {}),
+      ...(dailyBonus > 0 ? { dailyBonus } : {}),
+      ...(awards.length ? { awards } : {}),
     };
 
     showResults(this.overlayHost, this.song, result, {
@@ -848,6 +933,14 @@ export class Game {
         sing: this.sing[s],
         dir: Math.max(-1, Math.min(1, lean)),
       });
+      if (this.twoP) {
+        g.save();
+        g.font = `800 ${Math.round(size * 0.13)}px system-ui, sans-serif`;
+        g.textAlign = 'center';
+        g.fillStyle = s === 0 ? '#e75f96' : '#5aa7e8';
+        g.fillText(`P${s + 1}`, this.animX[s], this.animCY() - size * 0.62);
+        g.restore();
+      }
     }
 
     this.particles.draw(g);

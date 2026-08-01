@@ -19,6 +19,24 @@ export interface Settings {
   /** audio lead in ms — how early to schedule sound so it is HEARD on time.
    *  -1 = auto-detect from the device's reported output latency. */
   audioLeadMs: number;
+  /** treat fall speed multiplier (0.8 chill … 1.3 turbo) */
+  noteSpeed: number;
+  /** swap which screen half controls which character */
+  swapSides: boolean;
+  /** local 2-player duet: one player per lane */
+  twoPlayer: boolean;
+}
+
+/** Lifetime counters that feed achievements. */
+export interface LifetimeStats {
+  caught: number;
+  perfect: number;
+  cleared: number;
+  /** cleared without a revive (sudden death = no miss at all) */
+  flawless: number;
+  imported: number;
+  twoPlayerGames: number;
+  endlessBestLoops: number;
 }
 
 export interface Save {
@@ -30,6 +48,13 @@ export interface Save {
   right: string;
   songs: Record<string, SongProgress>;
   settings: Settings;
+  stats: LifetimeStats;
+  /** earned achievement ids */
+  achievements: string[];
+  /** daily login streak */
+  streak: { last: string; count: number };
+  /** daily challenge state */
+  daily: { date: string; done: boolean };
 }
 
 const KEY = 'animal-duet-save-v1';
@@ -49,7 +74,22 @@ function defaults(): Save {
       leaderboard: false,
       haptics: true,
       audioLeadMs: -1,
+      noteSpeed: 1,
+      swapSides: false,
+      twoPlayer: false,
     },
+    stats: {
+      caught: 0,
+      perfect: 0,
+      cleared: 0,
+      flawless: 0,
+      imported: 0,
+      twoPlayerGames: 0,
+      endlessBestLoops: 0,
+    },
+    achievements: [],
+    streak: { last: '', count: 0 },
+    daily: { date: '', done: false },
   };
 }
 
@@ -100,6 +140,10 @@ function load(): Save {
         p.unlockedSpecies && p.unlockedSpecies.length > 0
           ? p.unlockedSpecies
           : d.unlockedSpecies,
+      stats: { ...d.stats, ...(p.stats ?? {}) },
+      achievements: p.achievements ?? [],
+      streak: { ...d.streak, ...(p.streak ?? {}) },
+      daily: { ...d.daily, ...(p.daily ?? {}) },
     };
   } catch {
     return defaults();

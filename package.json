@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@spotify/basic-pitch": "^1.0.1",
+    "@tensorflow/tfjs": "^4.22.0"
+  }
+}

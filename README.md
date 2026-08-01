@@ -50,8 +50,18 @@ Open http://127.0.0.1:5173 — on a phone-sized window for the intended feel.
 - **Keyboard:** `A`/`D` moves the left animal, `←`/`→` the right. `Esc` pauses.
 - Catch treats when they reach your animal — each catch *sings the melody
   note* in that animal's voice. Perfect catches (dead center) score more.
-- 3 hearts; a miss costs one. Revive once per song for 100 coins.
+- Sudden death: a single miss ends the run — revive once per song for 100 coins.
 - Earn coins → unlock more characters and songs.
+- **2-player duet:** toggle 👥 2P on the Songs screen — one player per lane on
+  the same device (multi-touch), with a per-player breakdown at the end.
+- **Endless mode:** toggle ∞ — the song loops, speeding up each lap, until
+  the miss. Coins per loop.
+- **Daily Duet:** a date-seeded song + character pair on the home screen with
+  a coin bonus — locked content is free to *try* in the daily.
+- **Awards:** 13 achievements with coin rewards (🏆 on the home screen), plus
+  daily login streak coins.
+- Results can be **shared** as a rendered image card via the system share
+  sheet.
 
 ## Game design notes
 
@@ -60,12 +70,26 @@ Open http://127.0.0.1:5173 — on a phone-sized window for the intended feel.
   every song a different character.
 - **Scoring:** Perfect ×100 / Good ×60, combo multiplier up to 3×.
   Stars: ≥98% accuracy ★★★, ≥88% ★★, clear ★.
-- **Songs:** Twinkle Twinkle, Old MacDonald, Mary Had a Little Lamb, Frère
-  Jacques, Ode to Joy, Greensleeves, Für Elise, The Entertainer — all public
-  domain, charted in a compact text notation in `app/src/data/songs.ts`.
+- **Songs (16):** Twinkle Twinkle, Old MacDonald, Mary Had a Little Lamb,
+  Frère Jacques, Ode to Joy, Greensleeves, Für Elise, The Entertainer, Happy
+  Birthday, Row Your Boat, London Bridge, Yankee Doodle, Jingle Bells, Silent
+  Night, Korobeiniki, Mountain King (Grieg) — all public-domain melodies,
+  charted in a compact text notation in `app/src/data/songs.ts`.
 - Add a song: append a `SongDef` with melody + chords. Add a character: add a
   couple of `AnimalDef`s, a voice patch in `instruments.ts`, and a sculpted
   template in `sprites.ts` — or just use the admin studio.
+
+## Play your own song
+
+The song list has an import card: pick any audio file from the device and an
+on-device neural transcription (Spotify's open-source [basic-pitch] model,
+Apache-2.0, bundled locally — no network) extracts the melody, detects tempo
+and key, and builds a chart the characters sing in their own voices. The
+original audio is discarded after analysis — nothing is stored, played back,
+uploaded, or redistributed, which keeps the feature clean of music-licensing
+issues. Charts live in IndexedDB, deletable from the song list.
+
+[basic-pitch]: https://github.com/spotify/basic-pitch-ts
 
 ## Admin Studio (local content management)
 

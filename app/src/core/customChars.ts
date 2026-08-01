@@ -12,8 +12,8 @@
 
 import { audio } from '../audio/engine';
 import { midiToFreq } from '../data/songs';
-import { setAnimalResolver, type AnimalDef } from '../data/animals';
-import type { VoiceHandle } from '../audio/instruments';
+import { setAnimalResolver, type AnimalDef, type PatchId } from '../data/animals';
+import { playPatch, PATCH_RANGE, type VoiceHandle } from '../audio/instruments';
 import { registerLocalSprite, unregisterLocalSprite } from '../game/sprites';
 import { save, persist } from './storage';
 
@@ -35,10 +35,13 @@ export interface CustomCharMeta {
   createdAt: number;
   baseFreq: number;
   sampleRate: number;
+  /** set when the star uses a built-in synth voice instead of a recording */
+  patch?: PatchId;
 }
 
 interface CustomCharRecord extends CustomCharMeta {
-  pcm: ArrayBuffer;
+  /** raw recording — absent when the star uses a built-in patch voice */
+  pcm?: ArrayBuffer;
   image: Blob;
   /** optional open-mouth variant shown while singing (older records lack it) */
   imageSing?: Blob;
@@ -87,7 +90,7 @@ function defaultDef(meta: CustomCharMeta): AnimalDef {
     name: meta.name,
     speciesName: 'Star',
     blurb: 'Your very own singing star!',
-    patch: 'meow',
+    patch: meta.patch ?? 'meow',
     pitchOffset: 0,
     bright: 1,
     treat: 'fish',
@@ -116,8 +119,11 @@ export async function initCustomChars(): Promise<void> {
         createdAt: rec.createdAt,
         baseFreq: rec.baseFreq,
         sampleRate: rec.sampleRate,
+        ...(rec.patch ? { patch: rec.patch } : {}),
       });
-      pcmCache.set(rec.id, { pcm: new Float32Array(rec.pcm), sampleRate: rec.sampleRate });
+      if (rec.pcm) {
+        pcmCache.set(rec.id, { pcm: new Float32Array(rec.pcm), sampleRate: rec.sampleRate });
+      }
       registerLocalSprite(rec.id, rec.image, rec.imageSing ?? null);
     }
   } catch {
@@ -133,25 +139,35 @@ export function isCustomChar(id: string): boolean {
   return registry.has(id);
 }
 
+export type CustomVoice =
+  | { pcm: Float32Array; sampleRate: number; baseFreq: number }
+  | { patch: PatchId };
+
 export async function createCustomChar(
   name: string,
   image: Blob,
   imageSing: Blob | null,
-  pcm: Float32Array,
-  sampleRate: number,
-  baseFreq: number,
+  voice: CustomVoice,
 ): Promise<CustomCharMeta> {
   const id = `custom-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
-  const meta: CustomCharMeta = { id, name, createdAt: Date.now(), baseFreq, sampleRate };
+  const recorded = 'pcm' in voice;
+  const meta: CustomCharMeta = {
+    id,
+    name,
+    createdAt: Date.now(),
+    baseFreq: recorded ? voice.baseFreq : 220,
+    sampleRate: recorded ? voice.sampleRate : 44100,
+    ...(recorded ? {} : { patch: voice.patch }),
+  };
   const rec: CustomCharRecord = {
     ...meta,
-    pcm: pcm.buffer.slice(0) as ArrayBuffer,
+    ...(recorded ? { pcm: voice.pcm.buffer.slice(0) as ArrayBuffer } : {}),
     image,
     ...(imageSing ? { imageSing } : {}),
   };
   await tx('readwrite', (s) => s.put(rec));
   registry.set(id, meta);
-  pcmCache.set(id, { pcm, sampleRate });
+  if (recorded) pcmCache.set(id, { pcm: voice.pcm, sampleRate: voice.sampleRate });
   registerLocalSprite(id, image, imageSing);
   return meta;
 }
@@ -191,8 +207,17 @@ export function playCustomVoice(
   midi: number,
   opts: { when?: number; dur?: number; vel?: number } = {},
 ): VoiceHandle {
-  const buffer = bufferFor(id);
   const meta = registry.get(id);
+  // built-in-voice stars sing through the regular synth patch
+  if (meta?.patch && !pcmCache.has(id)) {
+    return playPatch(meta.patch, midi, {
+      when: opts.when,
+      dur: opts.dur,
+      vel: opts.vel,
+      bright: 1.1,
+    });
+  }
+  const buffer = bufferFor(id);
   const ctx = audio.ctx;
   if (!buffer || !meta) return { stop: () => {} };
   const t = opts.when && opts.when > 0 ? Math.max(opts.when, ctx.currentTime) : ctx.currentTime;
@@ -239,6 +264,7 @@ export function playCustomVoice(
 /** The register a custom pet naturally sings in, centered on its recording. */
 export function customRange(id: string): [number, number] {
   const meta = registry.get(id);
+  if (meta?.patch && !pcmCache.has(id)) return PATCH_RANGE[meta.patch];
   const baseMidi = meta
     ? Math.round(69 + 12 * Math.log2(meta.baseFreq / 440))
     : 60;

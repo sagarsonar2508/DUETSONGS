@@ -3,7 +3,7 @@
  */
 
 import './styles/main.css';
-import { router, type ScreenId } from './core/router';
+import { router, type PlayOpts, type ScreenId } from './core/router';
 import { unlockEverything } from './core/storage';
 import { initPlatform, setBackHandler, setPauseHandler } from './core/platform';
 import { SPECIES } from './data/animals';
@@ -15,6 +15,7 @@ import { renderHome } from './ui/home';
 import { renderSongs } from './ui/songs';
 import { renderAnimals } from './ui/animalsScreen';
 import { renderSettings } from './ui/settings';
+import { renderAwards } from './ui/awards';
 
 // Test mode via URL: http://127.0.0.1:5173/?all=1 unlocks everything.
 if (new URLSearchParams(location.search).get('all') === '1') {
@@ -34,6 +35,7 @@ const SCREENS: Record<ScreenId, (r: HTMLElement) => () => void> = {
   songs: renderSongs,
   animals: renderAnimals,
   settings: renderSettings,
+  awards: renderAwards,
 };
 
 router.go = (screen: ScreenId) => {
@@ -60,21 +62,26 @@ router.go = (screen: ScreenId) => {
   setPauseHandler(() => menuMusic.stop());
 };
 
-router.play = (songId: string) => {
+router.play = (songId: string, opts: PlayOpts = {}) => {
   cleanup?.();
   cleanup = null;
   menuMusic.stop();
   game?.destroy();
   audio.ensure();
-  game = new Game(root, songId, {
-    onQuit: () => {
-      game = null;
-      router.go('songs');
+  game = new Game(
+    root,
+    songId,
+    {
+      onQuit: () => {
+        game = null;
+        router.go('songs');
+      },
+      onRestart: () => {
+        router.play(songId, opts);
+      },
     },
-    onRestart: () => {
-      router.play(songId);
-    },
-  });
+    opts,
+  );
 };
 
 // Audio contexts must be unlocked by a user gesture on mobile.
@@ -93,4 +100,5 @@ Promise.allSettled([
   import('./core/manifest').then((m) => m.initManifest()),
   import('./core/content').then((m) => m.initContent()),
   import('./core/customChars').then((m) => m.initCustomChars()),
+  import('./core/userSongs').then((m) => m.initUserSongs()),
 ]).then(() => router.go('home'));

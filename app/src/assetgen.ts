@@ -7,8 +7,9 @@
 import { animalById } from './data/animals';
 import { drawAnimal } from './game/art';
 
+// brand pair: the classic cat crooner duetting with a literal star
 const MILO = animalById('cat-m');
-const MIMI = animalById('cat-f');
+const STELLA = animalById('star-f');
 
 function bg(g: CanvasRenderingContext2D, size: number, dark: boolean): void {
   const grad = g.createLinearGradient(0, 0, 0, size);
@@ -76,7 +77,7 @@ function pair(
   const s = size * scale;
   const pose = { t: 0.35, squash: 0, sing: 0, dir: 0 };
   drawAnimal(g, MILO, size * 0.32, size * cy, s, pose);
-  drawAnimal(g, MIMI, size * 0.68, size * cy, s, { ...pose, t: 1.1 });
+  drawAnimal(g, STELLA, size * 0.68, size * cy, s, { ...pose, t: 1.1 });
 }
 
 function render(): void {

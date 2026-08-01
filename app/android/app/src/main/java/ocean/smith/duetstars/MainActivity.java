@@ -1,4 +1,4 @@
-package media.gsharp.animalduet;
+package ocean.smith.duetstars;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "media.gsharp.animalduet"
+    namespace = "ocean.smith.duetstars"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "media.gsharp.animalduet"
+        applicationId "ocean.smith.duetstars"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

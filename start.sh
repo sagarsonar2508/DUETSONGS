@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start Animal Duet: backend (optional leaderboard) + game dev server.
+# Start Duet Stars: backend (optional leaderboard) + game dev server.
 set -e
 cd "$(dirname "$0")"
 

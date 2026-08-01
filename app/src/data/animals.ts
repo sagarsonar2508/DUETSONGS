@@ -2,7 +2,7 @@
  * Character roster: 8 species × male & female = 16 characters.
  * Each character has its own palette and a sex-specific voice character
  * (brightness, vibrato, register) so the two halves of a duet look AND
- * sound like a real couple. Outfits are defined here too.
+ * sound like a real couple.
  */
 
 export type PatchId =
@@ -13,7 +13,11 @@ export type PatchId =
   | 'hoot'
   | 'quack'
   | 'yip'
-  | 'grunt';
+  | 'grunt'
+  | 'beep'
+  | 'boo'
+  | 'roar'
+  | 'twinkle';
 
 export type TreatId =
   | 'fish'
@@ -23,7 +27,10 @@ export type TreatId =
   | 'moon'
   | 'bread'
   | 'berry'
-  | 'bamboo';
+  | 'bamboo'
+  | 'bolt'
+  | 'gem'
+  | 'candy';
 
 export type SpeciesId =
   | 'cat'
@@ -33,7 +40,11 @@ export type SpeciesId =
   | 'owl'
   | 'duck'
   | 'fox'
-  | 'panda';
+  | 'panda'
+  | 'robot'
+  | 'ghost'
+  | 'dragon'
+  | 'star';
 
 export interface AnimalColors {
   body: string;
@@ -74,6 +85,10 @@ export const SPECIES: SpeciesInfo[] = [
   { id: 'owl', cost: 1100 },
   { id: 'fox', cost: 1400 },
   { id: 'panda', cost: 1700 },
+  { id: 'ghost', cost: 2000 },
+  { id: 'robot', cost: 2300 },
+  { id: 'dragon', cost: 2600 },
+  { id: 'star', cost: 3000 },
 ];
 
 export const ANIMALS: AnimalDef[] = [
@@ -173,7 +188,75 @@ export const ANIMALS: AnimalDef[] = [
     patch: 'grunt', pitchOffset: 12, bright: 1.3, treat: 'bamboo',
     colors: { body: '#fbf6f4', belly: '#ffffff', accent: '#4e444e', cheek: '#ff9ec0', detail: '#3c333c' },
   },
+  {
+    id: 'ghost-m', species: 'ghost', sex: 'm', name: 'Gus', speciesName: 'Ghost',
+    blurb: 'A shy phantom crooner. Only haunts the high notes.',
+    patch: 'boo', pitchOffset: 0, bright: 0.85, treat: 'moon',
+    colors: { body: '#eef0fb', belly: '#ffffff', accent: '#aab4e8', cheek: '#b8c4f0', detail: '#4a4a6a' },
+  },
+  {
+    id: 'ghost-f', species: 'ghost', sex: 'f', name: 'Boo', speciesName: 'Ghost',
+    blurb: 'Sweetest little haunt you ever heard. Boo!',
+    patch: 'boo', pitchOffset: 0, bright: 1.35, treat: 'moon',
+    colors: { body: '#f7effb', belly: '#ffffff', accent: '#d3b8ec', cheek: '#f0b0d0', detail: '#54486a' },
+  },
+  {
+    id: 'robot-m', species: 'robot', sex: 'm', name: 'Bolt', speciesName: 'Robot',
+    blurb: 'Beep boop baritone. Never misses a beat — literally.',
+    patch: 'beep', pitchOffset: 0, bright: 0.85, treat: 'bolt',
+    colors: { body: '#c8d8e8', belly: '#e8f0f8', accent: '#5aa7e8', cheek: '#7fd0f0', detail: '#3a4a5c' },
+  },
+  {
+    id: 'robot-f', species: 'robot', sex: 'f', name: 'Pixel', speciesName: 'Robot',
+    blurb: 'Chiptune diva with a heart of gold-plated circuits.',
+    patch: 'beep', pitchOffset: 0, bright: 1.35, treat: 'bolt',
+    colors: { body: '#f0d8e4', belly: '#faeef4', accent: '#e87ab0', cheek: '#ff9ec0', detail: '#5c3a4c' },
+  },
+  {
+    id: 'dragon-m', species: 'dragon', sex: 'm', name: 'Blaze', speciesName: 'Dragon',
+    blurb: 'Big roar, bigger heart. Sings smoke rings.',
+    patch: 'roar', pitchOffset: 0, bright: 0.8, treat: 'gem',
+    colors: { body: '#a8d8c0', belly: '#f0e6b8', accent: '#5faf8a', cheek: '#ffb0a0', detail: '#2e5a48' },
+  },
+  {
+    id: 'dragon-f', species: 'dragon', sex: 'f', name: 'Ember', speciesName: 'Dragon',
+    blurb: 'Warm crackling mezzo with sparks in every phrase.',
+    patch: 'roar', pitchOffset: 12, bright: 1.3, treat: 'gem',
+    colors: { body: '#f4b8a8', belly: '#fdeada', accent: '#e08a6a', cheek: '#ff9ec0', detail: '#6a3a2e' },
+  },
+  {
+    id: 'star-m', species: 'star', sex: 'm', name: 'Cosmo', speciesName: 'Star',
+    blurb: 'Fell from the sky mid-song and just kept singing.',
+    patch: 'twinkle', pitchOffset: 0, bright: 0.9, treat: 'candy',
+    colors: { body: '#ffe08a', belly: '#fff4cd', accent: '#f5a94a', cheek: '#ffb8a0', detail: '#6d5730' },
+  },
+  {
+    id: 'star-f', species: 'star', sex: 'f', name: 'Stella', speciesName: 'Star',
+    blurb: 'The literal star of the show. Shines an octave up.',
+    patch: 'twinkle', pitchOffset: 0, bright: 1.4, treat: 'candy',
+    colors: { body: '#ffe9c4', belly: '#fff9e8', accent: '#ffb56b', cheek: '#ff9e9e', detail: '#6d5730' },
+  },
 ];
+
+/**
+ * Roster mutation hooks for the content manifest (admin-authored
+ * characters). Called once at boot, before any screen renders — every
+ * consumer iterates ANIMALS at render time, so in-place mutation is safe.
+ */
+export function registerAnimals(defs: AnimalDef[]): void {
+  for (const def of defs) {
+    const i = ANIMALS.findIndex((a) => a.id === def.id);
+    if (i >= 0) ANIMALS[i] = def;
+    else ANIMALS.push(def);
+  }
+}
+
+export function hideAnimals(ids: string[]): void {
+  for (const id of ids) {
+    const i = ANIMALS.findIndex((a) => a.id === id);
+    if (i >= 0) ANIMALS.splice(i, 1);
+  }
+}
 
 /** Pluggable resolver so locally-created custom characters resolve too. */
 let externalResolver: ((id: string) => AnimalDef | undefined) | null = null;
@@ -193,36 +276,4 @@ export function coupleOf(species: SpeciesId): [AnimalDef, AnimalDef] {
 
 export function speciesCost(id: SpeciesId): number {
   return SPECIES.find((s) => s.id === id)?.cost ?? 0;
-}
-
-/* -------------------------------- outfits ------------------------------- */
-
-export type OutfitId =
-  | 'none'
-  | 'bowtie'
-  | 'flowercrown'
-  | 'scarf'
-  | 'tophat'
-  | 'tuxedo'
-  | 'dress';
-
-export interface OutfitDef {
-  id: OutfitId;
-  name: string;
-  cost: number;
-  blurb: string;
-}
-
-export const OUTFITS: OutfitDef[] = [
-  { id: 'none', name: 'Natural', cost: 0, blurb: 'Just fur and feathers.' },
-  { id: 'bowtie', name: 'Bowtie', cost: 150, blurb: 'Instant charm, zero effort.' },
-  { id: 'flowercrown', name: 'Flower Crown', cost: 150, blurb: 'Spring, worn as a hat.' },
-  { id: 'scarf', name: 'Cozy Scarf', cost: 250, blurb: 'For chilly duets.' },
-  { id: 'tophat', name: 'Top Hat', cost: 300, blurb: 'Fancy. Very fancy.' },
-  { id: 'tuxedo', name: 'Tuxedo', cost: 500, blurb: 'Dressed for the grand stage.' },
-  { id: 'dress', name: 'Wedding Dress', cost: 500, blurb: 'A veil, a bow, a promise.' },
-];
-
-export function outfitById(id: string): OutfitDef {
-  return OUTFITS.find((o) => o.id === id) ?? OUTFITS[0];
 }

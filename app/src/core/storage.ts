@@ -1,6 +1,6 @@
 /**
  * Local save data — everything persists in localStorage on this device only.
- * v2: species couples (m/f characters) + wardrobe.
+ * v2: species couples (m/f characters).
  */
 
 export interface SongProgress {
@@ -29,9 +29,6 @@ export interface Save {
   left: string;
   right: string;
   songs: Record<string, SongProgress>;
-  /** owned outfit ids + what each character is wearing */
-  ownedOutfits: string[];
-  equipped: Record<string, string>;
   settings: Settings;
 }
 
@@ -45,8 +42,6 @@ function defaults(): Save {
     left: 'cat-m',
     right: 'cat-f',
     songs: {},
-    ownedOutfits: ['none'],
-    equipped: {},
     settings: {
       musicVol: 0.8,
       sfxVol: 1.0,
@@ -105,9 +100,6 @@ function load(): Save {
         p.unlockedSpecies && p.unlockedSpecies.length > 0
           ? p.unlockedSpecies
           : d.unlockedSpecies,
-      ownedOutfits:
-        p.ownedOutfits && p.ownedOutfits.length > 0 ? p.ownedOutfits : d.ownedOutfits,
-      equipped: p.equipped ?? {},
     };
   } catch {
     return defaults();
@@ -149,26 +141,6 @@ export function unlockSpecies(id: string): void {
   }
 }
 
-export function ownsOutfit(id: string): boolean {
-  return save.ownedOutfits.includes(id);
-}
-
-export function buyOutfit(id: string): void {
-  if (!ownsOutfit(id)) {
-    save.ownedOutfits.push(id);
-    persist();
-  }
-}
-
-export function equippedOutfit(charId: string): string {
-  return save.equipped[charId] ?? 'none';
-}
-
-export function equipOutfit(charId: string, outfitId: string): void {
-  save.equipped[charId] = outfitId;
-  persist();
-}
-
 export function recordResult(
   songId: string,
   score: number,
@@ -188,15 +160,10 @@ export function resetProgress(): void {
   persist();
 }
 
-/** Test mode: unlock every species, outfit and song, and top up coins. */
-export function unlockEverything(
-  speciesIds: string[],
-  outfitIds: string[],
-  songIds: string[],
-): void {
+/** Test mode: unlock every species and song, and top up coins. */
+export function unlockEverything(speciesIds: string[], songIds: string[]): void {
   save.coins = Math.max(save.coins, 99999);
   save.unlockedSpecies = [...speciesIds];
-  save.ownedOutfits = [...outfitIds];
   for (const id of songIds) {
     songProgress(id).unlocked = true;
   }

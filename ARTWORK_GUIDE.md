@@ -1,4 +1,4 @@
-# 🎨 Artwork Guide — generating character art for Animal Duet
+# 🎨 Artwork Guide — generating character art for Duet Stars
 
 The game auto-loads custom art from `app/public/characters/`. Use the local
 admin panel (`npm run dev` → http://127.0.0.1:5173/admin.html) to sanitize
@@ -16,11 +16,12 @@ the built-in sculpted style, so you can migrate one character at a time.
 
 Character IDs: `cat-m` `cat-f` `chick-m` `chick-f` `dog-m` `dog-f` `frog-m`
 `frog-f` `owl-m` `owl-f` `duck-m` `duck-f` `fox-m` `fox-f` `panda-m` `panda-f`
-(16 characters × 2 poses = 32 images.)
+`ghost-m` `ghost-f` `robot-m` `robot-f` `dragon-m` `dragon-f` `star-m` `star-f`
+(24 characters × 2 poses = 48 images.)
 
 If `sing` is missing the game reuses `idle`, so you can start with 16 images.
 
-## Framing rules (important — the game and outfits depend on this)
+## Framing rules (important — the game depends on this)
 
 - **Front view, full body, sitting upright** (like a cat sitting facing you)
 - Character **centered horizontally**, feet/bottom at the **bottom of the subject**
@@ -71,18 +72,19 @@ and keep `--style raw` + the same seed where possible.
 
 ## Install workflow
 
-1. `npm run dev` → open http://127.0.0.1:5173/admin.html
-2. Click the slot (character + pose) → drop the image
-3. Adjust background-removal tolerance until the checkerboard shows through cleanly
-4. Check the in-game preview (bench alignment)
-5. "Save to project" → pick `app/public/characters` once → file is written
+1. `npm run dev` → open http://127.0.0.1:5173/admin.html (the Character Studio)
+2. Connect the app folder once (header button → pick the `app` folder)
+3. Pick the character in the sidebar → Artwork section → "Replace…" on the idle or sing slot → drop the image
+4. Adjust background-removal tolerance until the checkerboard shows through cleanly
+5. Check the in-game preview (bench alignment) → "Save into project"
 6. Rebuild: `npm run build` (web) or `npm run apk` (Android)
+
+The studio can also record/upload a real voice per character (saved as
+`<charId>.voice.wav` + registered in `manifest.json`), create new characters
+from the species templates, and hide or delete roster members — see the
+in-app "How it works" panel.
 
 Sanitization performed automatically: raster-only (SVG rejected), 25 MB cap,
 decode → re-encode strips all EXIF/metadata, background keyed from corners,
 transparent margins trimmed, art normalized to the game's standard frame
 (ground line at 92%, max height 83%, centered) as a clean 1024×1024 PNG.
-
-Note: outfits (tuxedo, dress, crowns…) are rendered by the game as an overlay
-layer on top of custom art. Because the admin panel normalizes framing, they
-land correctly as long as your art follows the framing rules above.

@@ -5,19 +5,10 @@
 
 import { ANIMALS } from './data/animals';
 import { drawAnimal } from './game/art';
-import type { OutfitId } from './data/animals';
 
 const canvas = document.getElementById('lab') as HTMLCanvasElement;
 const g = canvas.getContext('2d')!;
 
-const OUTFIT_DEMO: Record<string, OutfitId> = {
-  'cat-m': 'tuxedo',
-  'cat-f': 'dress',
-  'dog-f': 'flowercrown',
-  'owl-m': 'tophat',
-  'fox-f': 'scarf',
-  'chick-m': 'bowtie',
-};
 
 function frame(): void {
   const t = performance.now() / 1000;
@@ -39,8 +30,7 @@ function frame(): void {
       170 + col * 300,
       520 + row * 230,
       190,
-      { t: t + i * 0.3, squash: 0, sing: 0, dir: 0 },
-      OUTFIT_DEMO[a.id] ?? 'none',
+      { t: t + i * 0.3, squash: 0, sing: 0, dir: 0 }
     );
   });
   requestAnimationFrame(frame);

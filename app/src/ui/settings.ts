@@ -4,7 +4,7 @@
 
 import { router } from '../core/router';
 import { save, persist, resetProgress, unlockEverything } from '../core/storage';
-import { SPECIES, OUTFITS } from '../data/animals';
+import { SPECIES } from '../data/animals';
 import { SONGS } from '../data/songs';
 import { audio } from '../audio/engine';
 import { uiSound } from '../audio/instruments';
@@ -45,7 +45,7 @@ export function renderSettings(root: HTMLElement): () => void {
         <div class="setting-divider"></div>
         <button class="btn" data-act="unlockall">🧪 Test mode: unlock everything</button>
         <button class="btn btn-ghost btn-danger" data-act="reset">Reset all progress</button>
-        <div class="settings-footer">Animal Duet · everything stays on this device 🐾</div>
+        <div class="settings-footer">Duet Stars · everything stays on this device ⭐</div>
       </div>
     </div>`;
 
@@ -89,12 +89,11 @@ export function renderSettings(root: HTMLElement): () => void {
   root.querySelector('[data-act="unlockall"]')!.addEventListener('click', () => {
     unlockEverything(
       SPECIES.map((x) => x.id),
-      OUTFITS.map((x) => x.id),
       SONGS.map((x) => x.id),
     );
     uiSound('buy');
     refreshCoins();
-    toast('Everything unlocked — 16 characters, all outfits & songs, 99,999 coins');
+    toast('Everything unlocked — all characters & songs, 99,999 coins');
   });
 
   root.querySelector('[data-act="reset"]')!.addEventListener('click', () => {

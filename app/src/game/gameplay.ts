@@ -10,8 +10,14 @@
 
 import { audio } from '../audio/engine';
 import { Backing } from '../audio/backing';
-import { playPatch, uiSound, type VoiceHandle } from '../audio/instruments';
-import { animalById, type AnimalDef, type OutfitId } from '../data/animals';
+import {
+  playPatch,
+  uiSound,
+  PATCH_RANGE,
+  fitToRange,
+  type VoiceHandle,
+} from '../audio/instruments';
+import { animalById, type AnimalDef } from '../data/animals';
 import {
   buildChart,
   songById,
@@ -24,9 +30,13 @@ import {
   addCoins,
   recordResult,
   songProgress,
-  equippedOutfit,
 } from '../core/storage';
-import { isCustomChar, playCustomVoice } from '../core/customChars';
+import { isCustomChar, playCustomVoice, customRange } from '../core/customChars';
+import {
+  hasVoiceOverride,
+  playVoiceOverride,
+  voiceOverrideRange,
+} from '../audio/voiceOverrides';
 import { setBackHandler, setPauseHandler, keepAwake, haptic } from '../core/platform';
 import { drawAnimal, drawTreat, drawHoldTreat } from './art';
 import { Particles } from './particles';
@@ -86,7 +96,6 @@ export class Game {
   private particles = new Particles();
 
   private animals: [AnimalDef, AnimalDef];
-  private outfits: [OutfitId, OutfitId];
   private animX: [number, number] = [0, 0];
   private targetX: [number, number] = [0, 0];
   private squash: [number, number] = [0, 0];
@@ -118,6 +127,9 @@ export class Game {
   private H = 0;
   private midiMin = 60;
   private midiMax = 72;
+  /** per-lane transposition into the singer's natural register */
+  private laneShift: [number, number] = [0, 0];
+  private laneRange: [[number, number], [number, number]] = [[48, 72], [48, 72]];
   private wasFirstClear: boolean;
 
   constructor(root: HTMLElement, songId: string, handlers: GameHandlers) {
@@ -127,10 +139,6 @@ export class Game {
     this.fallDur = FALL_DURATION[this.song.difficulty];
     this.spb = 60 / this.song.bpm;
     this.animals = [animalById(save.left), animalById(save.right)];
-    this.outfits = [
-      equippedOutfit(save.left) as OutfitId,
-      equippedOutfit(save.right) as OutfitId,
-    ];
     this.wasFirstClear = songProgress(songId).plays === 0;
 
     root.innerHTML = '';
@@ -208,6 +216,29 @@ export class Game {
       x: 0,
       status: 'pending' as const,
     }));
+
+    // Transpose each lane's part into its singer's natural register, so a
+    // frog always croaks low and a chick trills high — the animal keeps its
+    // voice and the song comes to it, not the other way around.
+    for (const lane of [0, 1] as const) {
+      const def = this.animals[lane];
+      const sampled = isCustomChar(def.id) || hasVoiceOverride(def.id);
+      let [lo, hi] = isCustomChar(def.id)
+        ? customRange(def.id)
+        : hasVoiceOverride(def.id)
+          ? voiceOverrideRange(def.id)
+          : PATCH_RANGE[def.patch];
+      if (!sampled && def.bright > 1) {
+        lo += 3;
+        hi += 3;
+      }
+      const laneNotes = chart.filter((n) => n.lane === lane);
+      const avg = laneNotes.length
+        ? laneNotes.reduce((s, n) => s + n.midi, 0) / laneNotes.length
+        : 62;
+      this.laneShift[lane] = Math.round(((lo + hi) / 2 - avg) / 12) * 12;
+      this.laneRange[lane] = [lo, hi];
+    }
   }
 
   private startAudio(): void {
@@ -439,14 +470,20 @@ export class Game {
   private singNote(n: LiveNote, when: number, strong: boolean): VoiceHandle {
     const def = this.animals[n.lane];
     const vel = strong ? 1 : 0.85;
-    return isCustomChar(def.id)
-      ? playCustomVoice(def.id, n.midi, { when, dur: n.durSec, vel })
-      : playPatch(def.patch, n.midi + def.pitchOffset, {
-          when,
-          dur: n.durSec,
-          vel,
-          bright: def.bright,
-        });
+    const [lo, hi] = this.laneRange[n.lane];
+    const midi = fitToRange(n.midi + this.laneShift[n.lane], lo, hi);
+    if (isCustomChar(def.id)) {
+      return playCustomVoice(def.id, midi, { when, dur: n.durSec, vel });
+    }
+    if (hasVoiceOverride(def.id)) {
+      return playVoiceOverride(def.id, midi, { when, dur: n.durSec, vel });
+    }
+    return playPatch(def.patch, midi, {
+      when,
+      dur: n.durSec,
+      vel,
+      bright: def.bright,
+    });
   }
 
   private onCatch(n: LiveNote, distRatio: number, t: number): void {
@@ -810,7 +847,7 @@ export class Game {
         squash: this.squash[s],
         sing: this.sing[s],
         dir: Math.max(-1, Math.min(1, lean)),
-      }, this.outfits[s]);
+      });
     }
 
     this.particles.draw(g);

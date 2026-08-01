@@ -6,7 +6,7 @@ import './styles/main.css';
 import { router, type ScreenId } from './core/router';
 import { unlockEverything } from './core/storage';
 import { initPlatform, setBackHandler, setPauseHandler } from './core/platform';
-import { SPECIES, OUTFITS } from './data/animals';
+import { SPECIES } from './data/animals';
 import { SONGS } from './data/songs';
 import { audio } from './audio/engine';
 import { MenuMusic } from './audio/backing';
@@ -20,7 +20,6 @@ import { renderSettings } from './ui/settings';
 if (new URLSearchParams(location.search).get('all') === '1') {
   unlockEverything(
     SPECIES.map((x) => x.id),
-    OUTFITS.map((x) => x.id),
     SONGS.map((x) => x.id),
   );
 }
@@ -88,8 +87,10 @@ window.addEventListener('pointerdown', unlock);
 
 void initPlatform();
 
-// Load locally-created custom characters, then boot the UI.
-import('./core/customChars')
-  .then((m) => m.initCustomChars())
-  .catch(() => {})
-  .finally(() => router.go('home'));
+// Load the admin-authored content (character manifest + app content config)
+// and locally-created custom characters, then boot the UI.
+Promise.allSettled([
+  import('./core/manifest').then((m) => m.initManifest()),
+  import('./core/content').then((m) => m.initContent()),
+  import('./core/customChars').then((m) => m.initCustomChars()),
+]).then(() => router.go('home'));

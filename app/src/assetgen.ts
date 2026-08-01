@@ -111,7 +111,7 @@ function render(): void {
     g.font = `800 ${S * 0.07}px 'Baloo 2', 'Arial Rounded MT Bold', system-ui, sans-serif`;
     g.textAlign = 'center';
     g.fillStyle = dark ? '#ffe9f3' : '#e75f96';
-    g.fillText('Animal Duet', S / 2, S * 0.635);
+    g.fillText('Duet Stars', S / 2, S * 0.635);
     g.font = `700 ${S * 0.026}px 'Baloo 2', system-ui, sans-serif`;
     g.fillStyle = dark ? 'rgba(255,255,255,0.7)' : 'rgba(90,70,100,0.6)';
     g.fillText('catch the beat · sing the song', S / 2, S * 0.682);

@@ -4,12 +4,12 @@
  * Each species is an individually authored illustration (organic bezier
  * silhouettes, fur tufts, flat cel colors with discrete shade shapes,
  * consistent warm outline) parameterized only by palette and small feature
- * toggles (sex, outfit, singing). Rendered to Image sprites and drawn to
+ * toggles (sex, singing). Rendered to Image sprites and drawn to
  * canvas; characters without a sculpted template fall back to the old
  * parametric renderer.
  */
 
-import type { AnimalDef, OutfitId } from '../data/animals';
+import type { AnimalDef } from '../data/animals';
 
 const OUT = '#4a3b36';
 
@@ -31,7 +31,6 @@ export interface SpriteMeta {
 
 interface TemplateArgs {
   def: AnimalDef;
-  outfit: OutfitId;
   sing: boolean;
 }
 
@@ -62,7 +61,7 @@ function bowSvg(x: number, y: number, k: number, color: string, dark: string): s
    small outward ears, tiny wide-set bean eyes, pear body, two front leg
    columns, haunch creases, back paws peeking, thick tail lying forward. */
 
-const catTemplate: Template = ({ def, outfit, sing }) => {
+const catTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const shadeCol = 'rgba(120,95,80,0.14)';
@@ -76,11 +75,6 @@ const catTemplate: Template = ({ def, outfit, sing }) => {
         ? `<path d="M74.5 84.2 L76.8 77.4 M82.6 80.2 L85.8 74.6" stroke="${patch}" stroke-width="3.4" stroke-linecap="round" opacity="0.9"/>`
         : `<path d="M86.2 68.5 C86.2 66.8 85.3 65.2 83.5 64" fill="none" stroke="${c.cheek}" stroke-width="7.8" stroke-linecap="round"/>`
     }`;
-
-  const veil = outfit === 'dress'
-    ? `<path d="M30 22 C18 34 16 62 24 78 C34 84 42 84 46 80 C36 62 36 38 44 20 Z
-        M70 22 C82 34 84 62 76 78 C66 84 58 84 54 80 C64 62 64 38 56 20 Z" fill="#ffffff" opacity="0.55"/>`
-    : '';
 
   const body = `
     <path d="M36.5 50 C31 58 27.5 68 27.5 78.5 C27.5 87.5 34 91.5 50 91.5 C66 91.5 72.5 87.5 72.5 78.5 C72.5 68 69 58 63.5 50 Z" fill="${c.body}" stroke="${OUT}" stroke-width="2.2" stroke-linejoin="round"/>
@@ -105,28 +99,6 @@ const catTemplate: Template = ({ def, outfit, sing }) => {
       <ellipse cx="56.2" cy="87.4" rx="5.4" ry="4.2"/>
     </g>
     <path d="M42.2 88.6 L42.2 91.1 M45.4 88.9 L45.4 91.4 M54.6 88.9 L54.6 91.4 M57.8 88.6 L57.8 91.1" stroke="${OUT}" stroke-width="1.1" stroke-linecap="round"/>`;
-
-  let outfitTorso = '';
-  if (outfit === 'tuxedo') {
-    outfitTorso = `
-      <path d="M37.5 52 C32.5 59.5 29.5 68.5 29.5 78 C29.5 85.8 35.5 89.5 50 89.5 C64.5 89.5 70.5 85.8 70.5 78 C70.5 68.5 67.5 59.5 62.5 52 Z" fill="#3a3a44" stroke="#26262e" stroke-width="2.2" stroke-linejoin="round"/>
-      <path d="M43.5 52.5 L56.5 52.5 L50 68 Z" fill="#ffffff" stroke="#d8d4dc" stroke-width="1.3"/>
-      <circle cx="50" cy="72" r="1.1" fill="#1e1e26"/>
-      <circle cx="50" cy="77.5" r="1.1" fill="#1e1e26"/>
-      ${bowSvg(50, 54.5, 0.95, '#26262e', '#15151b')}`;
-  } else if (outfit === 'dress') {
-    outfitTorso = `
-      <path d="M38 55 C30 66 25 78 24.5 87.5 C33 91 43 92 50 92 C57 92 67 91 75.5 87.5 C75 78 70 66 62 55 Z" fill="#ffffff" stroke="#dcc8d2" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M28 88.5 a5 4 0 0 0 9 .8 a5 4 0 0 0 9 .5 a5 4 0 0 0 8 0 a5 4 0 0 0 9 -.5 a5 4 0 0 0 9 -.8" fill="none" stroke="#ecd6e2" stroke-width="1.4"/>
-      ${bowSvg(50, 60, 1.05, '#f5a8c2', '#d987a3')}`;
-  } else if (outfit === 'scarf') {
-    outfitTorso = `
-      <g stroke="#b8544e" stroke-width="1.8" stroke-linejoin="round">
-        <rect x="36" y="51.5" width="28" height="6.8" rx="3.4" fill="#e87a7a"/>
-        <rect x="52" y="56" width="7.4" height="14" rx="3.4" fill="#e87a7a"/>
-      </g>
-      <path d="M53.5 65.5 L58 65.5 M53.5 68 L58 68" stroke="#b8544e" stroke-width="1.1" stroke-linecap="round"/>`;
-  }
 
   const earL = `
     <path d="M30.5 22.5 C27.8 14.5 29.5 8 33.5 5.8 C38.5 8.5 42.5 13 44 17.8 C39.5 20 34.5 21.7 30.5 22.5 Z" fill="${def.sex === 'm' ? patch : c.body}" stroke="${OUT}" stroke-width="2.2" stroke-linejoin="round"/>
@@ -200,38 +172,13 @@ const catTemplate: Template = ({ def, outfit, sing }) => {
     <ellipse cx="33.2" cy="42.6" rx="3.7" ry="2.3" fill="${c.cheek}" opacity="${female ? 0.75 : 0.5}"/>
     <ellipse cx="66.8" cy="42.6" rx="3.7" ry="2.3" fill="${c.cheek}" opacity="${female ? 0.75 : 0.5}"/>`;
 
-  const flowerAcc =
-    female && outfit !== 'flowercrown' && outfit !== 'tophat' && outfit !== 'dress'
-      ? flowerSvg(67.5, 12.5, 3.4, '#f290b2')
-      : '';
-
-  let headWear = '';
-  if (outfit === 'flowercrown') {
-    headWear =
-      flowerSvg(38, 12.2, 3, '#f290b2') +
-      flowerSvg(46, 10.4, 3, '#ffd98a') +
-      flowerSvg(54, 10.4, 3, '#f290b2') +
-      flowerSvg(62, 12.2, 3, '#ffd98a');
-  } else if (outfit === 'tophat') {
-    headWear = `
-      <g transform="rotate(-4 50 10)" stroke="#26262e" stroke-width="2" stroke-linejoin="round">
-        <rect x="38" y="-6" width="24" height="17" rx="2.4" fill="#3a3a44"/>
-        <rect x="33" y="9" width="34" height="4.6" rx="2.3" fill="#3a3a44"/>
-        <rect x="38" y="4.5" width="24" height="4.6" rx="1.6" fill="#e75f96" stroke="#c94f80"/>
-      </g>`;
-  } else if (outfit === 'dress') {
-    headWear = flowerSvg(42, 11.4, 2.8, '#f290b2') + flowerSvg(50, 9.8, 2.8, '#f6b8cc') + flowerSvg(58, 11.4, 2.8, '#f290b2');
-  }
-
-  const neckWear = outfit === 'bowtie' ? bowSvg(50, 54.5, 1.15, '#5aa7e8', '#3f7dbd') : '';
+  const flowerAcc = female ? flowerSvg(67.5, 12.5, 3.4, '#f290b2') : '';
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    ${veil}
     ${tail}
     ${body}
     ${backFeet}
     ${frontLegs}
-    ${outfitTorso}
     ${earL}${earR}
     ${head}
     ${headPatchSvg}
@@ -241,9 +188,7 @@ const catTemplate: Template = ({ def, outfit, sing }) => {
     ${muzzle}
     ${mouth}
     ${whiskers}
-    ${neckWear}
     ${flowerAcc}
-    ${headWear}
   </svg>`;
 };
 
@@ -344,70 +289,8 @@ function singMouthSvg(y = 47.6): string {
   </g>`;
 }
 
-function outfitTorsoSvg(outfit: OutfitId): string {
-  if (outfit === 'tuxedo') {
-    return `
-      <path d="M37.5 52 C32.5 59.5 29.5 68.5 29.5 78 C29.5 85.8 35.5 89.5 50 89.5 C64.5 89.5 70.5 85.8 70.5 78 C70.5 68.5 67.5 59.5 62.5 52 Z" fill="#3a3a44" stroke="#26262e" stroke-width="2.2" stroke-linejoin="round"/>
-      <path d="M43.5 52.5 L56.5 52.5 L50 68 Z" fill="#ffffff" stroke="#d8d4dc" stroke-width="1.3"/>
-      <circle cx="50" cy="72" r="1.1" fill="#1e1e26"/>
-      <circle cx="50" cy="77.5" r="1.1" fill="#1e1e26"/>
-      ${bowSvg(50, 54.5, 0.95, '#26262e', '#15151b')}`;
-  }
-  if (outfit === 'dress') {
-    return `
-      <path d="M38 55 C30 66 25 78 24.5 87.5 C33 91 43 92 50 92 C57 92 67 91 75.5 87.5 C75 78 70 66 62 55 Z" fill="#ffffff" stroke="#dcc8d2" stroke-width="2" stroke-linejoin="round"/>
-      <path d="M28 88.5 a5 4 0 0 0 9 .8 a5 4 0 0 0 9 .5 a5 4 0 0 0 8 0 a5 4 0 0 0 9 -.5 a5 4 0 0 0 9 -.8" fill="none" stroke="#ecd6e2" stroke-width="1.4"/>
-      ${bowSvg(50, 60, 1.05, '#f5a8c2', '#d987a3')}`;
-  }
-  if (outfit === 'scarf') {
-    return `
-      <g stroke="#b8544e" stroke-width="1.8" stroke-linejoin="round">
-        <rect x="36" y="51.5" width="28" height="6.8" rx="3.4" fill="#e87a7a"/>
-        <rect x="52" y="56" width="7.4" height="14" rx="3.4" fill="#e87a7a"/>
-      </g>
-      <path d="M53.5 65.5 L58 65.5 M53.5 68 L58 68" stroke="#b8544e" stroke-width="1.1" stroke-linecap="round"/>`;
-  }
-  return '';
-}
-
-function headWearSvg(outfit: OutfitId): string {
-  if (outfit === 'flowercrown') {
-    return (
-      flowerSvg(38, 12.2, 3, '#f290b2') +
-      flowerSvg(46, 10.4, 3, '#ffd98a') +
-      flowerSvg(54, 10.4, 3, '#f290b2') +
-      flowerSvg(62, 12.2, 3, '#ffd98a')
-    );
-  }
-  if (outfit === 'tophat') {
-    return `
-      <g transform="rotate(-4 50 10)" stroke="#26262e" stroke-width="2" stroke-linejoin="round">
-        <rect x="38" y="-6" width="24" height="17" rx="2.4" fill="#3a3a44"/>
-        <rect x="33" y="9" width="34" height="4.6" rx="2.3" fill="#3a3a44"/>
-        <rect x="38" y="4.5" width="24" height="4.6" rx="1.6" fill="#e75f96" stroke="#c94f80"/>
-      </g>`;
-  }
-  if (outfit === 'dress') {
-    return flowerSvg(42, 11.4, 2.8, '#f290b2') + flowerSvg(50, 9.8, 2.8, '#f6b8cc') + flowerSvg(58, 11.4, 2.8, '#f290b2');
-  }
-  return '';
-}
-
-function veilSvg(outfit: OutfitId): string {
-  return outfit === 'dress'
-    ? `<path d="M30 22 C18 34 16 62 24 78 C34 84 42 84 46 80 C36 62 36 38 44 20 Z
-        M70 22 C82 34 84 62 76 78 C66 84 58 84 54 80 C64 62 64 38 56 20 Z" fill="#ffffff" opacity="0.55"/>`
-    : '';
-}
-
-function neckWearSvg(outfit: OutfitId): string {
-  return outfit === 'bowtie' ? bowSvg(50, 54.5, 1.15, '#5aa7e8', '#3f7dbd') : '';
-}
-
-function femaleFlowerSvg(female: boolean, outfit: OutfitId): string {
-  return female && outfit !== 'flowercrown' && outfit !== 'tophat' && outfit !== 'dress'
-    ? flowerSvg(67.5, 12.5, 3.4, '#f290b2')
-    : '';
+function femaleFlowerSvg(female: boolean): string {
+  return female ? flowerSvg(67.5, 12.5, 3.4, '#f290b2') : '';
 }
 
 function wrap(...layers: string[]): string {
@@ -416,7 +299,7 @@ function wrap(...layers: string[]): string {
 
 /* ------------------------------ 7 species ------------------------------- */
 
-const dogTemplate: Template = ({ def, outfit, sing }) => {
+const dogTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const tail = `
@@ -437,10 +320,8 @@ const dogTemplate: Template = ({ def, outfit, sing }) => {
     ? singMouthSvg(48)
     : `<path d="M46.6 45.6 Q48.3 47.3 50 45.9 Q51.7 47.3 53.4 45.6" fill="none" stroke="${OUT}" stroke-width="1.3" stroke-linecap="round"/>`;
   return wrap(
-    veilSvg(outfit),
     tail,
     quadBodySvg(c),
-    outfitTorsoSvg(outfit),
     headBaseSvg(c.body),
     patch,
     ears,
@@ -448,13 +329,11 @@ const dogTemplate: Template = ({ def, outfit, sing }) => {
     blushSvg(c.cheek, female),
     muzzle,
     mouth,
-    neckWearSvg(outfit),
-    femaleFlowerSvg(female, outfit),
-    headWearSvg(outfit),
+    femaleFlowerSvg(female),
   );
 };
 
-const foxTemplate: Template = ({ def, outfit, sing }) => {
+const foxTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const tail = `
@@ -483,10 +362,8 @@ const foxTemplate: Template = ({ def, outfit, sing }) => {
       <path d="M74 41 Q82.5 39.5 87.5 40"/><path d="M73.7 44.5 Q82 45 86.5 47"/>
     </g>`;
   return wrap(
-    veilSvg(outfit),
     tail,
     quadBodySvg(c),
-    outfitTorsoSvg(outfit),
     ears,
     headBaseSvg(c.body),
     mask,
@@ -495,13 +372,11 @@ const foxTemplate: Template = ({ def, outfit, sing }) => {
     nose,
     mouth,
     whiskers,
-    neckWearSvg(outfit),
-    femaleFlowerSvg(female, outfit),
-    headWearSvg(outfit),
+    femaleFlowerSvg(female),
   );
 };
 
-const pandaTemplate: Template = ({ def, outfit, sing }) => {
+const pandaTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const dark = c.accent;
@@ -530,9 +405,7 @@ const pandaTemplate: Template = ({ def, outfit, sing }) => {
     ? singMouthSvg(48.5)
     : `<path d="M50 45.4 L50 46.6 M47.6 48 Q50 49.8 52.4 48" fill="none" stroke="${OUT}" stroke-width="1.3" stroke-linecap="round"/>`;
   return wrap(
-    veilSvg(outfit),
     quadBodySvg(c, shade(dark, 1.5), dark),
-    outfitTorsoSvg(outfit),
     ears,
     headBaseSvg(c.body),
     patches,
@@ -540,13 +413,11 @@ const pandaTemplate: Template = ({ def, outfit, sing }) => {
     blushSvg(c.cheek, female, 43.5),
     muzzle,
     mouth,
-    neckWearSvg(outfit),
-    femaleFlowerSvg(female, outfit),
-    headWearSvg(outfit),
+    femaleFlowerSvg(female),
   );
 };
 
-const frogTemplate: Template = ({ def, outfit, sing }) => {
+const frogTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const bumps = `
@@ -574,22 +445,18 @@ const frogTemplate: Template = ({ def, outfit, sing }) => {
       </g>`
     : `<path d="M40 40.5 Q50 47.5 60 40.5" fill="none" stroke="${OUT}" stroke-width="1.5" stroke-linecap="round"/>`;
   return wrap(
-    veilSvg(outfit),
     quadBodySvg(c, c.body),
-    outfitTorsoSvg(outfit),
     bumps,
     headBaseSvg(c.body),
     eyes,
     face,
     blushSvg(c.cheek, female, 41),
     mouth,
-    neckWearSvg(outfit),
-    femaleFlowerSvg(female, outfit),
-    headWearSvg(outfit),
+    femaleFlowerSvg(female),
   );
 };
 
-const chickTemplate: Template = ({ def, outfit, sing }) => {
+const chickTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const sprigs = `
@@ -605,21 +472,17 @@ const chickTemplate: Template = ({ def, outfit, sing }) => {
       </g>`
     : `<path d="M45 40.8 Q50 37.6 55 40.8 Q50 45.2 45 40.8 Z" fill="${c.accent}" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>`;
   return wrap(
-    veilSvg(outfit),
     birdBodySvg(c, sing, c.accent),
-    outfitTorsoSvg(outfit),
     sprigs,
     headBaseSvg(c.body),
     beanEyesSvg(10.5, 35, 3, female),
     blushSvg(c.cheek, female, 41.5),
     beak,
-    neckWearSvg(outfit),
-    femaleFlowerSvg(female, outfit),
-    headWearSvg(outfit),
+    femaleFlowerSvg(female),
   );
 };
 
-const duckTemplate: Template = ({ def, outfit, sing }) => {
+const duckTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const tailFlick = `
@@ -636,22 +499,18 @@ const duckTemplate: Template = ({ def, outfit, sing }) => {
         <path d="M43 43.4 Q50 45.8 57 43.4" fill="none" stroke-width="1.2"/>
       </g>`;
   return wrap(
-    veilSvg(outfit),
     tailFlick,
     birdBodySvg(c, sing, '#f5a95e'),
-    outfitTorsoSvg(outfit),
     swoosh,
     headBaseSvg(c.body),
     beanEyesSvg(11.5, 34.5, 3, female),
     blushSvg(c.cheek, female, 41.5),
     bill,
-    neckWearSvg(outfit),
-    femaleFlowerSvg(female, outfit),
-    headWearSvg(outfit),
+    femaleFlowerSvg(female),
   );
 };
 
-const owlTemplate: Template = ({ def, outfit, sing }) => {
+const owlTemplate: Template = ({ def, sing }) => {
   const c = def.colors;
   const female = def.sex === 'f';
   const tufts = `
@@ -683,19 +542,234 @@ const owlTemplate: Template = ({ def, outfit, sing }) => {
     ? `<path d="M47.4 42.4 Q50 40.9 52.6 42.4 Q51.4 47.8 50 48.4 Q48.6 47.8 47.4 42.4 Z" fill="#e8b45e" stroke="${OUT}" stroke-width="1.4" stroke-linejoin="round"/>`
     : `<path d="M47.4 42.4 Q50 40.9 52.6 42.4 Q51 45.8 50 46.3 Q49 45.8 47.4 42.4 Z" fill="#e8b45e" stroke="${OUT}" stroke-width="1.4" stroke-linejoin="round"/>`;
   return wrap(
-    veilSvg(outfit),
     birdBodySvg(c, sing, c.accent),
     scallops,
-    outfitTorsoSvg(outfit),
     tufts,
     headBaseSvg(c.body),
     disc,
     eyes,
     blushSvg(c.cheek, female, 44),
     beak,
-    neckWearSvg(outfit),
-    femaleFlowerSvg(female, outfit),
-    headWearSvg(outfit),
+    femaleFlowerSvg(female),
+  );
+};
+
+/* --------------------------- non-animal stars ---------------------------- */
+
+const ghostTemplate: Template = ({ def, sing }) => {
+  const c = def.colors;
+  const female = def.sex === 'f';
+  // one soft sheet: dome head flowing into a scalloped floating hem
+  const body = `
+    <path d="M27 42
+      C27 20 36 10 50 10
+      C64 10 73 20 73 42
+      L73 76
+      C73 80 70 83 66.5 82
+      C63.5 81.2 62 84.5 58.5 85.5
+      C55 86.5 53 83.5 50 83.5
+      C47 83.5 45 86.5 41.5 85.5
+      C38 84.5 36.5 81.2 33.5 82
+      C30 83 27 80 27 76 Z"
+      fill="${c.body}" stroke="${OUT}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M31.5 44 C31.5 66 31.5 72 31.8 77" stroke="${OUT}" stroke-width="1.3" opacity="0.4" fill="none" stroke-linecap="round"/>
+    <path d="M68.5 44 C68.5 66 68.5 72 68.2 77" stroke="${OUT}" stroke-width="1.3" opacity="0.4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="50" cy="60" rx="13" ry="14" fill="${c.belly}" opacity="0.65"/>`;
+  const arms = `
+    <g fill="${c.body}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round">
+      <path d="M27.5 52 C21 54 18.5 59 20.5 63 C25 63.5 28.5 61 30.5 57.5 Z"/>
+      <path d="M72.5 52 C79 54 81.5 59 79.5 63 C75 63.5 71.5 61 69.5 57.5 Z"/>
+    </g>`;
+  const wisp = `
+    <path d="M50 10 C49 6.5 51.5 4.5 54.5 5" fill="none" stroke="${OUT}" stroke-width="1.8" stroke-linecap="round"/>`;
+  const mouth = sing
+    ? singMouthSvg(46)
+    : `<path d="M46.6 44.4 Q48.3 46.1 50 44.7 Q51.7 46.1 53.4 44.4" fill="none" stroke="${OUT}" stroke-width="1.3" stroke-linecap="round"/>`;
+  return wrap(
+    body,
+    arms,
+    wisp,
+    beanEyesSvg(10.5, 37, 3.2, female),
+    blushSvg(c.cheek, female, 43.5, 15),
+    mouth,
+    femaleFlowerSvg(female),
+  );
+};
+
+const robotTemplate: Template = ({ def, sing }) => {
+  const c = def.colors;
+  const female = def.sex === 'f';
+  const dark = shade(c.body, 0.82);
+  const antenna = `
+    <path d="M50 13.5 L50 7" stroke="${OUT}" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="50" cy="5.5" r="3" fill="${c.cheek}" stroke="${OUT}" stroke-width="1.8"/>
+    ${female ? bowSvg(50, 10.5, 0.85, '#f5a8c2', '#d987a3') : ''}`;
+  const head = `
+    <rect x="29" y="13.5" width="42" height="31" rx="9" fill="${c.body}" stroke="${OUT}" stroke-width="2.2"/>
+    <rect x="35" y="19" width="30" height="17.5" rx="5" fill="${c.detail}" stroke="${OUT}" stroke-width="1.6"/>
+    <g stroke="${OUT}" stroke-width="1.6" fill="${dark}">
+      <path d="M29 27 L24.5 27 A2.6 2.6 0 1 0 24.5 32 L29 32 Z"/>
+      <path d="M71 27 L75.5 27 A2.6 2.6 0 1 0 75.5 32 L71 32 Z"/>
+    </g>`;
+  const eyes = sing
+    ? `<g fill="${c.accent}">
+        <path d="M40 28.5 a3.1 3.1 0 0 1 6.2 0 Z" transform="rotate(180 43.1 27.2)"/>
+        <path d="M53.8 28.5 a3.1 3.1 0 0 1 6.2 0 Z" transform="rotate(180 56.9 27.2)"/>
+      </g>
+      <ellipse cx="50" cy="32.4" rx="3" ry="2.6" fill="${c.accent}"/>`
+    : `<g fill="${c.accent}">
+        <circle cx="43.1" cy="27.5" r="3.1"/>
+        <circle cx="56.9" cy="27.5" r="3.1"/>
+      </g>
+      <circle cx="42" cy="26.4" r="1" fill="#ffffff"/>
+      <circle cx="55.8" cy="26.4" r="1" fill="#ffffff"/>
+      <path d="M45.5 32.8 Q50 34.8 54.5 32.8" fill="none" stroke="${c.accent}" stroke-width="1.6" stroke-linecap="round"/>`;
+  const neck = `<rect x="45.5" y="44.5" width="9" height="4.5" fill="${dark}" stroke="${OUT}" stroke-width="1.6"/>`;
+  const torso = `
+    <rect x="31" y="48.5" width="38" height="32" rx="8" fill="${c.body}" stroke="${OUT}" stroke-width="2.2"/>
+    <rect x="37" y="54" width="26" height="14" rx="4" fill="${c.belly}" stroke="${OUT}" stroke-width="1.4"/>
+    ${
+      female
+        ? `<path d="M50 58.2 C48.5 55.8 45 56.4 45 59 C45 61.2 47.5 62.8 50 64.4 C52.5 62.8 55 61.2 55 59 C55 56.4 51.5 55.8 50 58.2 Z" fill="${c.cheek}" stroke="${OUT}" stroke-width="1.2"/>`
+        : `<circle cx="44" cy="61" r="2.2" fill="${c.accent}" stroke="${OUT}" stroke-width="1.2"/>
+           <path d="M50 57.5 L58 57.5 M50 61 L58 61 M50 64.5 L55 64.5" stroke="${OUT}" stroke-width="1.2" stroke-linecap="round" opacity="0.55"/>`
+    }
+    <circle cx="38.5" cy="73.5" r="1.6" fill="${c.accent}"/>
+    <circle cx="44" cy="73.5" r="1.6" fill="${c.cheek}"/>`;
+  const arms = `
+    <g fill="${c.body}" stroke="${OUT}" stroke-width="2">
+      <rect x="22.5" y="51" width="7.5" height="17" rx="3.6"/>
+      <rect x="70" y="51" width="7.5" height="17" rx="3.6"/>
+    </g>
+    <g fill="${dark}" stroke="${OUT}" stroke-width="1.8">
+      <circle cx="26.2" cy="70.5" r="3.6"/>
+      <circle cx="73.8" cy="70.5" r="3.6"/>
+    </g>`;
+  const legs = `
+    <g fill="${dark}" stroke="${OUT}" stroke-width="1.8">
+      <rect x="38" y="80.5" width="8" height="6.5"/>
+      <rect x="54" y="80.5" width="8" height="6.5"/>
+    </g>
+    <g fill="${c.body}" stroke="${OUT}" stroke-width="1.8">
+      <path d="M34.5 91.5 A6.6 5 0 0 1 47.5 91.5 Z"/>
+      <path d="M52.5 91.5 A6.6 5 0 0 1 65.5 91.5 Z"/>
+    </g>`;
+  return wrap(
+    antenna,
+    legs,
+    torso,
+    arms,
+    neck,
+    head,
+    eyes,
+    blushSvg(c.cheek, female, 39, 15.5),
+    femaleFlowerSvg(female),
+  );
+};
+
+const dragonTemplate: Template = ({ def, sing }) => {
+  const c = def.colors;
+  const female = def.sex === 'f';
+  const wings = `
+    <g stroke="${OUT}" stroke-width="2" stroke-linejoin="round" fill="${c.accent}">
+      <path d="M28 58 C17 52 13.5 44 16.5 37 C21 39 24 42 25.5 45 C25 41 26.5 38 29.5 36.5 C31.5 40 32.5 45 31.5 49 C33.5 51.5 34 55 33 58.5 Z"/>
+      <path d="M72 58 C83 52 86.5 44 83.5 37 C79 39 76 42 74.5 45 C75 41 73.5 38 70.5 36.5 C68.5 40 67.5 45 68.5 49 C66.5 51.5 66 55 67 58.5 Z"/>
+    </g>`;
+  const tail = `
+    <path d="M62 82 C74 85 82 81 84 73" fill="none" stroke="${OUT}" stroke-width="11" stroke-linecap="round"/>
+    <path d="M62 82 C74 85 82 81 84 73" fill="none" stroke="${c.body}" stroke-width="8.2" stroke-linecap="round"/>
+    <path d="M84.5 76 L89 66.5 L79.5 68.5 Z" fill="${c.cheek}" stroke="${OUT}" stroke-width="1.8" stroke-linejoin="round"/>`;
+  const horns = `
+    <g fill="${c.belly}" stroke="${OUT}" stroke-width="1.9" stroke-linejoin="round">
+      <path d="M35 16.5 C33 11.5 34 6.5 37.5 4 C39.5 8 40 12.5 39 16.2 Z"/>
+      <path d="M65 16.5 C67 11.5 66 6.5 62.5 4 C60.5 8 60 12.5 61 16.2 Z"/>
+    </g>`;
+  const crest = `
+    <g fill="${c.accent}" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round">
+      <path d="M46 13.6 L48.5 8.5 L51 13.4 Z"/>
+      <path d="M52.5 13.4 L55.5 9 L57.5 13.8 Z"/>
+    </g>`;
+  const snout = `
+    <ellipse cx="50" cy="44.8" rx="10.5" ry="6.6" fill="${c.belly}"/>
+    <g fill="${OUT}">
+      <ellipse cx="46.6" cy="42.6" rx="1.15" ry="1.5"/>
+      <ellipse cx="53.4" cy="42.6" rx="1.15" ry="1.5"/>
+    </g>`;
+  const mouth = sing
+    ? `<g stroke="${OUT}" stroke-width="1.3">
+        <ellipse cx="50" cy="48" rx="3.6" ry="4" fill="#8a4a52"/>
+        <ellipse cx="50" cy="49.6" rx="2" ry="1.7" fill="#f191a2" stroke="none"/>
+        <path d="M46.2 46.3 L47.4 47.8 M53.8 46.3 L52.6 47.8" stroke-width="1.1"/>
+      </g>`
+    : `<path d="M46.2 46.4 Q48.1 48.2 50 46.8 Q51.9 48.2 53.8 46.4" fill="none" stroke="${OUT}" stroke-width="1.3" stroke-linecap="round"/>
+       <path d="M45.4 45.2 L46.4 46.8" stroke="${OUT}" stroke-width="1.1" stroke-linecap="round"/>`;
+  const bellyScales = `
+    <g fill="none" stroke="${shade(c.belly, 0.8)}" stroke-width="1.1" opacity="0.8">
+      <path d="M42 70 a4.2 3.4 0 0 0 8 .5 a4.2 3.4 0 0 0 8 -.5"/>
+      <path d="M43.5 76.5 a4.2 3.4 0 0 0 6.8 .4 a4.2 3.4 0 0 0 6.8 -.4"/>
+      <path d="M45 83 a4.2 3.4 0 0 0 5.2 .3 a4.2 3.4 0 0 0 5.2 -.3"/>
+    </g>`;
+  return wrap(
+    wings,
+    tail,
+    quadBodySvg(c, c.belly),
+    bellyScales,
+    horns,
+    crest,
+    headBaseSvg(c.body),
+    beanEyesSvg(10.5, 35.5, 3, female),
+    blushSvg(c.cheek, female),
+    snout,
+    mouth,
+    femaleFlowerSvg(female),
+  );
+};
+
+const starTemplate: Template = ({ def, sing }) => {
+  const c = def.colors;
+  const female = def.sex === 'f';
+  const legs = `
+    <g stroke="${OUT}" stroke-width="1.5" opacity="0.6" fill="none" stroke-linecap="round">
+      <path d="M42.5 76 C42.2 80 42.2 83 42.5 85.5"/>
+      <path d="M57.5 76 C57.8 80 57.8 83 57.5 85.5"/>
+    </g>
+    <g fill="${c.belly}" stroke="${OUT}" stroke-width="1.8">
+      <ellipse cx="42" cy="88" rx="5.2" ry="3.8"/>
+      <ellipse cx="58" cy="88" rx="5.2" ry="3.8"/>
+    </g>
+    <path d="M40.4 89.2 L40.4 91.4 M43.6 89.5 L43.6 91.6 M56.4 89.5 L56.4 91.6 M59.6 89.2 L59.6 91.4" stroke="${OUT}" stroke-width="1" stroke-linecap="round"/>`;
+  const body = `
+    <path d="M50 11
+      L59.5 33.2 L83.5 35.4
+      C85.8 35.6 86.5 38 84.8 39.5
+      L66.7 55.4 L72 78.9
+      C72.5 81.2 70.5 82.7 68.5 81.5
+      L50 69.4 L31.5 81.5
+      C29.5 82.7 27.5 81.2 28 78.9
+      L33.3 55.4 L15.2 39.5
+      C13.5 38 14.2 35.6 16.5 35.4
+      L40.5 33.2 Z"
+      fill="${c.body}" stroke="${OUT}" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M50 18 L56 32 L44 32 Z" fill="${c.belly}" opacity="0.55"/>
+    <circle cx="21.5" cy="38.5" r="1.4" fill="#ffffff" opacity="0.85"/>
+    <circle cx="78.5" cy="38.5" r="1.4" fill="#ffffff" opacity="0.85"/>
+    <circle cx="50" cy="15.5" r="1.4" fill="#ffffff" opacity="0.85"/>`;
+  const mouth = sing
+    ? singMouthSvg(52)
+    : `<path d="M46.4 50.6 Q48.2 52.4 50 51 Q51.8 52.4 53.6 50.6" fill="none" stroke="${OUT}" stroke-width="1.3" stroke-linecap="round"/>`;
+  const sparkles = `
+    <g fill="${shade(c.accent, 1.25)}" opacity="0.9">
+      <path d="M69 22 L70.2 25 L73.2 26.2 L70.2 27.4 L69 30.4 L67.8 27.4 L64.8 26.2 L67.8 25 Z"/>
+      <path d="M27 62 L27.9 64.2 L30.1 65.1 L27.9 66 L27 68.2 L26.1 66 L23.9 65.1 L26.1 64.2 Z"/>
+    </g>`;
+  return wrap(
+    legs,
+    body,
+    sparkles,
+    beanEyesSvg(9, 44.5, 2.9, female),
+    blushSvg(c.cheek, female, 50.5, 13.5),
+    mouth,
+    femaleFlowerSvg(female),
   );
 };
 
@@ -710,6 +784,10 @@ const TEMPLATES: Partial<Record<string, Template>> = {
   chick: chickTemplate,
   duck: duckTemplate,
   owl: owlTemplate,
+  ghost: ghostTemplate,
+  robot: robotTemplate,
+  dragon: dragonTemplate,
+  star: starTemplate,
 };
 
 export const SPRITE_META: Partial<Record<string, SpriteMeta>> = {
@@ -721,6 +799,10 @@ export const SPRITE_META: Partial<Record<string, SpriteMeta>> = {
   chick: { eyes: [[39.5, 35], [60.5, 35]], eyeR: 3, headFill: 'body' },
   duck: { eyes: [[38.5, 34.5], [61.5, 34.5]], eyeR: 3, headFill: 'body' },
   owl: { eyes: [[40, 36], [60, 36]], eyeR: 4.3, headFill: 'belly' },
+  ghost: { eyes: [[39.5, 37], [60.5, 37]], eyeR: 3.2, headFill: 'body' },
+  dragon: { eyes: [[39.5, 35.5], [60.5, 35.5]], eyeR: 3, headFill: 'body' },
+  star: { eyes: [[41, 44.5], [59, 44.5]], eyeR: 2.9, headFill: 'body' },
+  // robot has screen eyes — no organic blink overlay
 };
 
 const cache = new Map<string, { img: HTMLImageElement; ready: boolean }>();
@@ -758,41 +840,53 @@ function customSprite(charId: string, pose: 'idle' | 'sing'): HTMLImageElement |
 }
 
 /**
- * User-created characters (premium feature): sprite image comes from a
- * local Blob in IndexedDB rather than the /characters/ folder.
+ * User-created characters (premium feature): sprite images come from local
+ * Blobs in IndexedDB rather than the /characters/ folder. Two frames:
+ * idle (required) and singing (optional — falls back to idle).
  */
-const localSprites = new Map<string, { img: HTMLImageElement; ready: boolean; url: string }>();
+interface LocalFrame {
+  img: HTMLImageElement;
+  ready: boolean;
+  url: string;
+}
 
-export function registerLocalSprite(charId: string, blob: Blob): void {
-  const prev = localSprites.get(charId);
-  if (prev) URL.revokeObjectURL(prev.url);
+const localSprites = new Map<string, { idle: LocalFrame; sing: LocalFrame | null }>();
+
+function loadFrame(blob: Blob): LocalFrame {
   const url = URL.createObjectURL(blob);
   const img = new Image();
-  const entry = { img, ready: false, url };
-  localSprites.set(charId, entry);
+  const frame: LocalFrame = { img, ready: false, url };
   img.onload = () => {
-    entry.ready = true;
+    frame.ready = true;
   };
   img.src = url;
+  return frame;
+}
+
+export function registerLocalSprite(charId: string, idle: Blob, sing: Blob | null = null): void {
+  unregisterLocalSprite(charId);
+  localSprites.set(charId, {
+    idle: loadFrame(idle),
+    sing: sing ? loadFrame(sing) : null,
+  });
 }
 
 export function unregisterLocalSprite(charId: string): void {
   const prev = localSprites.get(charId);
   if (prev) {
-    URL.revokeObjectURL(prev.url);
+    URL.revokeObjectURL(prev.idle.url);
+    if (prev.sing) URL.revokeObjectURL(prev.sing.url);
     localSprites.delete(charId);
   }
 }
 
-export function getSprite(
-  def: AnimalDef,
-  outfit: OutfitId,
-  sing: boolean,
-): SpriteResult | null {
-  // user-created characters draw their own local image
+export function getSprite(def: AnimalDef, sing: boolean): SpriteResult | null {
+  // user-created characters draw their own local images; the singing frame
+  // falls back to idle when it wasn't provided (or hasn't decoded yet)
   const local = localSprites.get(def.id);
   if (local) {
-    return local.ready ? { img: local.img, custom: true } : null;
+    const frame = sing && local.sing?.ready ? local.sing : local.idle;
+    return frame.ready ? { img: frame.img, custom: true } : null;
   }
   // user artwork wins; sing falls back to the idle frame if not provided
   const art = customSprite(def.id, sing ? 'sing' : 'idle') ?? (sing ? customSprite(def.id, 'idle') : null);
@@ -800,7 +894,7 @@ export function getSprite(
 
   const tpl = TEMPLATES[def.species];
   if (!tpl) return null;
-  const key = `${def.id}|${outfit}|${sing ? 1 : 0}`;
+  const key = `${def.id}|${sing ? 1 : 0}`;
   let entry = cache.get(key);
   if (!entry) {
     const img = new Image();
@@ -811,34 +905,20 @@ export function getSprite(
     };
     img.src =
       'data:image/svg+xml;charset=utf-8,' +
-      encodeURIComponent(tpl({ def, outfit, sing }));
+      encodeURIComponent(tpl({ def, sing }));
   }
   return entry.ready ? { img: entry.img, custom: false } : null;
 }
 
-/**
- * Standalone outfit layer, rendered over custom artwork (custom art is
- * normalized to the same 100-unit frame, so standard positions fit).
- */
-const overlayCache = new Map<string, { img: HTMLImageElement; ready: boolean }>();
-
-export function getOutfitOverlay(outfit: OutfitId): HTMLImageElement | null {
-  if (outfit === 'none') return null;
-  let entry = overlayCache.get(outfit);
-  if (!entry) {
-    const img = new Image();
-    entry = { img, ready: false };
-    overlayCache.set(outfit, entry);
-    img.onload = () => {
-      entry!.ready = true;
-    };
-    img.src =
-      'data:image/svg+xml;charset=utf-8,' +
-      encodeURIComponent(wrap(veilSvg(outfit), outfitTorsoSvg(outfit), neckWearSvg(outfit), headWearSvg(outfit)));
-  }
-  return entry.ready ? entry.img : null;
-}
-
 export function hasSprite(def: AnimalDef): boolean {
   return !!TEMPLATES[def.species];
+}
+
+/**
+ * Raw SVG markup for a species template — used by the admin studio to
+ * preview built-in art (and recolored variants) without a game canvas.
+ */
+export function templateSvg(def: AnimalDef, sing: boolean): string | null {
+  const tpl = TEMPLATES[def.species];
+  return tpl ? tpl({ def, sing }) : null;
 }

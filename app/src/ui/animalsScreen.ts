@@ -1,6 +1,6 @@
 /**
  * Character collection v2 — species couples (male & female), voice test on
- * tap, side assignment, and a wardrobe for dressing characters in outfits.
+ * tap, and side assignment.
  */
 
 import { router } from '../core/router';
@@ -10,22 +10,11 @@ import {
   addCoins,
   isSpeciesUnlocked,
   unlockSpecies,
-  ownsOutfit,
-  buyOutfit,
-  equippedOutfit,
-  equipOutfit,
 } from '../core/storage';
-import {
-  ANIMALS,
-  OUTFITS,
-  animalById,
-  speciesCost,
-  outfitById,
-  type AnimalDef,
-  type OutfitId,
-} from '../data/animals';
+import { ANIMALS, animalById, speciesCost } from '../data/animals';
 import { drawAnimal } from '../game/art';
 import { uiSound, animalRiff } from '../audio/instruments';
+import { hasVoiceOverride, playOverrideRiff } from '../audio/voiceOverrides';
 import { audio } from '../audio/engine';
 import {
   listCustomChars,
@@ -52,7 +41,6 @@ export function renderAnimals(root: HTMLElement): () => void {
     return `
       <div class="animal-card ${unlocked ? '' : 'locked'}" data-id="${a.id}">
         <span class="sex-tag ${a.sex}">${a.sex === 'm' ? '♂' : '♀'}</span>
-        ${unlocked ? `<button class="wardrobe-btn" data-id="${a.id}" aria-label="Wardrobe">👗</button>` : ''}
         <canvas class="animal-preview" width="10" height="10"></canvas>
         <div class="animal-name">${a.name}</div>
         <div class="animal-species">${a.speciesName}</div>
@@ -69,7 +57,6 @@ export function renderAnimals(root: HTMLElement): () => void {
       (m) => `
       <div class="animal-card custom-card" data-id="${m.id}">
         <span class="sex-tag star">★</span>
-        <button class="wardrobe-btn" data-id="${m.id}" aria-label="Wardrobe">👗</button>
         <button class="del-btn" data-id="${m.id}" aria-label="Delete">🗑</button>
         <canvas class="animal-preview" width="10" height="10"></canvas>
         <div class="animal-name">${escapeHtml(m.name)}</div>
@@ -91,12 +78,12 @@ export function renderAnimals(root: HTMLElement): () => void {
 
   root.innerHTML = `
     <div class="screen">
-      ${topbar('Animals', { back: true })}
+      ${topbar('Stars', { back: true })}
       <div class="slot-picker">
         <button class="slot-btn active" data-slot="0">◀ Left: <b class="slot-name-0"></b></button>
         <button class="slot-btn" data-slot="1">Right: <b class="slot-name-1"></b> ▶</button>
       </div>
-      <div class="slot-hint">Tap a character to hear their voice & assign the selected side · 👗 to dress up</div>
+      <div class="slot-hint">Tap a character to hear their voice & assign the selected side</div>
       <div class="animal-grid">${cards}${customCards}${creatorCard}</div>
     </div>`;
 
@@ -127,14 +114,6 @@ export function renderAnimals(root: HTMLElement): () => void {
       root.querySelectorAll('.slot-btn').forEach((x) =>
         x.classList.toggle('active', x === b),
       );
-    }),
-  );
-
-  root.querySelectorAll('.wardrobe-btn').forEach((b) =>
-    b.addEventListener('click', (e) => {
-      e.stopPropagation();
-      uiSound('tap');
-      openWardrobe(animalById((b as HTMLElement).dataset.id!));
     }),
   );
 
@@ -183,7 +162,8 @@ export function renderAnimals(root: HTMLElement): () => void {
       }
       const def = animalById(id);
       if (isSpeciesUnlocked(def.species)) {
-        animalRiff(def.patch, def.bright, def.pitchOffset);
+        if (hasVoiceOverride(id)) playOverrideRiff(id);
+        else animalRiff(def.patch, def.bright, def.pitchOffset);
         if (activeSlot === 0) {
           if (save.right === id) save.right = save.left;
           save.left = id;
@@ -201,9 +181,9 @@ export function renderAnimals(root: HTMLElement): () => void {
         toast(`Need ${cost - save.coins} more coins for the ${def.speciesName} couple!`);
         return;
       }
-      const pair = ANIMALS.filter((a) => a.species === def.species);
+      const family = ANIMALS.filter((a) => a.species === def.species);
       modal({
-        title: `Adopt ${pair[0].name} & ${pair[1].name}?`,
+        title: `Adopt ${family.map((a) => a.name).join(' & ')}?`,
         body: `<div class="unlock-blurb">${def.blurb}</div><div class="unlock-cost"><span class="coin-ico">●</span> ${cost}</div>`,
         actions: [
           {
@@ -213,7 +193,8 @@ export function renderAnimals(root: HTMLElement): () => void {
               addCoins(-cost);
               unlockSpecies(def.species);
               uiSound('buy');
-              animalRiff(def.patch, def.bright, def.pitchOffset);
+              if (hasVoiceOverride(def.id)) playOverrideRiff(def.id);
+              else animalRiff(def.patch, def.bright, def.pitchOffset);
               refreshCoins();
               router.go('animals');
             },
@@ -224,101 +205,11 @@ export function renderAnimals(root: HTMLElement): () => void {
     }),
   );
 
-  /* ------------------------------ wardrobe ------------------------------ */
-
-  function openWardrobe(def: AnimalDef): void {
-    let wearing = equippedOutfit(def.id) as OutfitId;
-    const host = document.createElement('div');
-    host.className = 'overlay overlay-fade';
-    const chips = () =>
-      OUTFITS.map((o) => {
-        const owned = ownsOutfit(o.id);
-        const isOn = wearing === o.id;
-        return `
-          <button class="outfit-chip ${isOn ? 'on' : ''}" data-id="${o.id}">
-            <span class="outfit-name">${o.name}</span>
-            ${
-              owned || o.cost === 0
-                ? `<span class="outfit-state">${isOn ? 'Wearing' : 'Owned'}</span>`
-                : `<span class="outfit-state"><span class="coin-ico">●</span> ${o.cost}</span>`
-            }
-          </button>`;
-      }).join('');
-    host.innerHTML = `
-      <div class="panel wardrobe-panel">
-        <h2>${def.name}'s Wardrobe</h2>
-        <canvas class="wardrobe-preview" width="10" height="10"></canvas>
-        <div class="outfit-list">${chips()}</div>
-        <div class="panel-actions"><button class="btn btn-ghost" data-act="close">Done</button></div>
-      </div>`;
-    document.body.appendChild(host);
-
-    const canvas = host.querySelector('.wardrobe-preview') as HTMLCanvasElement;
-    const g = canvas.getContext('2d')!;
-    let wraf = 0;
-    const loop = () => {
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width > 0) {
-        const dpr = Math.min(2, window.devicePixelRatio || 1);
-        if (canvas.width !== Math.round(rect.width * dpr)) {
-          canvas.width = Math.round(rect.width * dpr);
-          canvas.height = Math.round(rect.height * dpr);
-        }
-        g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        g.clearRect(0, 0, rect.width, rect.height);
-        drawAnimal(g, def, rect.width / 2, rect.height * 0.52, rect.height * 0.72, {
-          t: performance.now() / 1000, squash: 0, sing: 0, dir: 0,
-        }, wearing);
-      }
-      wraf = requestAnimationFrame(loop);
-    };
-    wraf = requestAnimationFrame(loop);
-
-    const close = () => {
-      cancelAnimationFrame(wraf);
-      host.remove();
-      refreshCoins();
-    };
-    host.addEventListener('click', (e) => {
-      if (e.target === host) close();
-    });
-    host.querySelector('[data-act="close"]')!.addEventListener('click', () => {
-      uiSound('tap');
-      close();
-    });
-
-    const bindChips = (): void => {
-      host.querySelectorAll('.outfit-chip').forEach((chip) =>
-        chip.addEventListener('click', () => {
-          const oid = (chip as HTMLElement).dataset.id as OutfitId;
-          const o = outfitById(oid);
-          if (ownsOutfit(oid) || o.cost === 0) {
-            wearing = wearing === oid ? 'none' : oid;
-            equipOutfit(def.id, wearing);
-            uiSound('tap');
-          } else if (save.coins >= o.cost) {
-            addCoins(-o.cost);
-            buyOutfit(oid);
-            wearing = oid;
-            equipOutfit(def.id, wearing);
-            uiSound('buy');
-            refreshCoins();
-          } else {
-            toast(`Need ${o.cost - save.coins} more coins for the ${o.name}!`);
-            return;
-          }
-          (host.querySelector('.outfit-list') as HTMLElement).innerHTML = chips();
-          bindChips();
-        }),
-      );
-    };
-    bindChips();
-  }
-
   /* --------------------------- create-your-own --------------------------- */
 
   function openCreator(): void {
     let photoBlob: Blob | null = null;
+    let photoSingBlob: Blob | null = null;
     let voicePcm: Float32Array | null = null;
     let voiceRate = 44100;
     let baseFreq = 220;
@@ -333,11 +224,19 @@ export function renderAnimals(root: HTMLElement): () => void {
         <input type="text" class="creator-name" maxlength="14" placeholder="Star's name" />
         <div class="creator-row">
           <div class="creator-box" data-k="photo">
-            <div class="creator-box-title">📷 Photo</div>
+            <div class="creator-box-title">📷 Normal</div>
             <img class="creator-photo" hidden />
-            <div class="creator-box-hint">PNG/JPG · ≤${MAX_IMAGE_FILE_MB}MB<br/>white or clear background</div>
+            <div class="creator-box-hint">mouth closed · PNG/JPG ≤${MAX_IMAGE_FILE_MB}MB<br/>white or clear background</div>
             <input type="file" accept="image/png,image/jpeg,image/webp" hidden class="photo-input"/>
           </div>
+          <div class="creator-box" data-k="photo-sing">
+            <div class="creator-box-title">🎤 Singing</div>
+            <img class="creator-photo" hidden />
+            <div class="creator-box-hint">mouth open, same angle!<br/><b>optional</b> — reuses Normal</div>
+            <input type="file" accept="image/png,image/jpeg,image/webp" hidden class="photo-sing-input"/>
+          </div>
+        </div>
+        <div class="creator-row">
           <div class="creator-box" data-k="voice">
             <div class="creator-box-title">🎙 Voice</div>
             <div class="voice-status">no sound yet</div>
@@ -374,15 +273,21 @@ export function renderAnimals(root: HTMLElement): () => void {
     });
     q('[data-act="close"]').addEventListener('click', close);
 
-    // ---- photo ----
+    // ---- photos (normal + optional singing frame) ----
     const photoInput = q<HTMLInputElement>('.photo-input');
     q('[data-k="photo"]').addEventListener('click', () => photoInput.click());
     photoInput.addEventListener('change', () => {
       const f = photoInput.files?.[0];
-      if (f) void handlePhoto(f);
+      if (f) void handlePhoto(f, 'photo');
+    });
+    const photoSingInput = q<HTMLInputElement>('.photo-sing-input');
+    q('[data-k="photo-sing"]').addEventListener('click', () => photoSingInput.click());
+    photoSingInput.addEventListener('change', () => {
+      const f = photoSingInput.files?.[0];
+      if (f) void handlePhoto(f, 'photo-sing');
     });
 
-    async function handlePhoto(f: File): Promise<void> {
+    async function handlePhoto(f: File, kind: 'photo' | 'photo-sing'): Promise<void> {
       if (!/^image\/(png|jpeg|webp)$/.test(f.type)) {
         setStatus('Photo rejected: PNG/JPG/WebP only (no SVG).', false);
         return;
@@ -423,11 +328,15 @@ export function renderAnimals(root: HTMLElement): () => void {
       const th = b.y1 - b.y0 + 1;
       const s = Math.min((0.83 * 512) / th, (0.88 * 512) / tw);
       og.drawImage(work, b.x0, b.y0, tw, th, (512 - tw * s) / 2, 0.92 * 512 - th * s, tw * s, th * s);
-      photoBlob = await new Promise<Blob>((res) => out.toBlob((x) => res(x!), 'image/png'));
-      const img = q<HTMLImageElement>('.creator-photo');
+      const blob = await new Promise<Blob>((res) => out.toBlob((x) => res(x!), 'image/png'));
+      if (kind === 'photo') photoBlob = blob;
+      else photoSingBlob = blob;
+      const img = q<HTMLImageElement>(`[data-k="${kind}"] .creator-photo`);
       img.src = out.toDataURL('image/png');
       img.hidden = false;
-      setStatus('Photo sanitized ✓ (metadata stripped, background keyed, framed)');
+      setStatus(
+        `${kind === 'photo' ? 'Normal' : 'Singing'} photo sanitized ✓ (metadata stripped, background keyed, framed)`,
+      );
       refreshButtons();
     }
 
@@ -528,7 +437,7 @@ export function renderAnimals(root: HTMLElement): () => void {
       }
       addCoins(-CUSTOM_CHAR_COST);
       uiSound('buy');
-      void createCustomChar(name, photoBlob, voicePcm, voiceRate, baseFreq).then((meta) => {
+      void createCustomChar(name, photoBlob, photoSingBlob, voicePcm, voiceRate, baseFreq).then((meta) => {
         if (activeSlot === 0) save.left = meta.id;
         else save.right = meta.id;
         persist();
@@ -566,7 +475,7 @@ export function renderAnimals(root: HTMLElement): () => void {
       if (locked) g.filter = 'grayscale(0.85) opacity(0.7)';
       drawAnimal(g, def, rect.width / 2, rect.height * 0.52, rect.height * 0.78, {
         t, squash: 0, sing: 0, dir: 0,
-      }, locked ? 'none' : (equippedOutfit(p.id) as OutfitId));
+      });
       g.filter = 'none';
     }
     raf = requestAnimationFrame(loop);

@@ -17,7 +17,13 @@ import type { VoiceHandle } from '../audio/instruments';
 import { registerLocalSprite, unregisterLocalSprite } from '../game/sprites';
 import { save, persist } from './storage';
 
-export const CUSTOM_CHAR_COST = 1500;
+/** Coin price of creating a star — `let` so content.json can override it
+ *  at boot (imports are live bindings, so consumers always see the value). */
+export let CUSTOM_CHAR_COST = 1500;
+
+export function setCustomCharCost(v: number): void {
+  CUSTOM_CHAR_COST = v;
+}
 export const MAX_VOICE_SECONDS = 1.5;
 export const MAX_AUDIO_FILE_MB = 5;
 export const MAX_IMAGE_FILE_MB = 10;
@@ -34,6 +40,8 @@ export interface CustomCharMeta {
 interface CustomCharRecord extends CustomCharMeta {
   pcm: ArrayBuffer;
   image: Blob;
+  /** optional open-mouth variant shown while singing (older records lack it) */
+  imageSing?: Blob;
 }
 
 const DB_NAME = 'animal-duet-custom';
@@ -110,7 +118,7 @@ export async function initCustomChars(): Promise<void> {
         sampleRate: rec.sampleRate,
       });
       pcmCache.set(rec.id, { pcm: new Float32Array(rec.pcm), sampleRate: rec.sampleRate });
-      registerLocalSprite(rec.id, rec.image);
+      registerLocalSprite(rec.id, rec.image, rec.imageSing ?? null);
     }
   } catch {
     /* IndexedDB unavailable (private mode) — feature simply hidden */
@@ -128,6 +136,7 @@ export function isCustomChar(id: string): boolean {
 export async function createCustomChar(
   name: string,
   image: Blob,
+  imageSing: Blob | null,
   pcm: Float32Array,
   sampleRate: number,
   baseFreq: number,
@@ -138,11 +147,12 @@ export async function createCustomChar(
     ...meta,
     pcm: pcm.buffer.slice(0) as ArrayBuffer,
     image,
+    ...(imageSing ? { imageSing } : {}),
   };
   await tx('readwrite', (s) => s.put(rec));
   registry.set(id, meta);
   pcmCache.set(id, { pcm, sampleRate });
-  registerLocalSprite(id, image);
+  registerLocalSprite(id, image, imageSing);
   return meta;
 }
 
@@ -189,7 +199,11 @@ export function playCustomVoice(
   const dur = Math.max(0.12, opts.dur ?? 0.3);
   const vel = opts.vel ?? 1;
 
-  const rate = Math.min(4, Math.max(0.25, midiToFreq(midi) / meta.baseFreq));
+  // octave-fold the shift so the pet always stays near its real voice —
+  // never more than ~an octave from the recording (no chipmunk, no demon)
+  let rate = midiToFreq(midi) / meta.baseFreq;
+  while (rate > 1.75) rate /= 2;
+  while (rate < 0.55) rate *= 2;
   const src = ctx.createBufferSource();
   src.buffer = buffer;
   src.playbackRate.value = rate;
@@ -220,6 +234,15 @@ export function playCustomVoice(
       master.gain.linearRampToValueAtTime(0.0001, now + 0.09);
     },
   };
+}
+
+/** The register a custom pet naturally sings in, centered on its recording. */
+export function customRange(id: string): [number, number] {
+  const meta = registry.get(id);
+  const baseMidi = meta
+    ? Math.round(69 + 12 * Math.log2(meta.baseFreq / 440))
+    : 60;
+  return [baseMidi - 5, baseMidi + 8];
 }
 
 /** Little arpeggio in the custom voice — previews / sound test. */

@@ -3,11 +3,25 @@
  */
 
 import { router } from '../core/router';
-import { save, equippedOutfit } from '../core/storage';
-import { animalById, type OutfitId } from '../data/animals';
+import { branding } from '../core/content';
+import { save } from '../core/storage';
+import { animalById } from '../data/animals';
 import { drawAnimal } from '../game/art';
 import { uiSound, animalRiff } from '../audio/instruments';
+import { hasVoiceOverride, playOverrideRiff } from '../audio/voiceOverrides';
 import { coinPill } from './components';
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
+
+/** Keep the two-tone logo treatment: first word plain, the rest tinted. */
+function titleHtml(title: string): string {
+  const [first, ...rest] = title.split(' ');
+  return rest.length
+    ? `${escapeHtml(first)}<span> ${escapeHtml(rest.join(' '))}</span>`
+    : escapeHtml(first);
+}
 
 export function renderHome(root: HTMLElement): () => void {
   root.innerHTML = `
@@ -19,14 +33,14 @@ export function renderHome(root: HTMLElement): () => void {
       </div>
       <div class="home-logo">
         <div class="home-logo-paw">🐾</div>
-        <h1>Animal<span> Duet</span></h1>
-        <div class="home-tagline">catch the beat · sing the song</div>
+        <h1>${titleHtml(branding.title)}</h1>
+        <div class="home-tagline">${escapeHtml(branding.tagline)}</div>
       </div>
       <canvas class="duo-stage" width="10" height="10"></canvas>
       <button class="btn btn-play">▶&nbsp; Play</button>
       <div class="home-nav">
         <button class="nav-card" data-go="songs"><span class="nav-emoji">🎵</span><span>Songs</span></button>
-        <button class="nav-card" data-go="animals"><span class="nav-emoji">🐣</span><span>Animals</span></button>
+        <button class="nav-card" data-go="animals"><span class="nav-emoji">⭐</span><span>Stars</span></button>
         <button class="nav-card" data-go="settings"><span class="nav-emoji">⚙️</span><span>Settings</span></button>
       </div>
     </div>`;
@@ -67,6 +81,8 @@ export function renderHome(root: HTMLElement): () => void {
     void import('../core/customChars').then((m) => {
       if (m.isCustomChar(id)) {
         m.playCustomRiff(id);
+      } else if (hasVoiceOverride(id)) {
+        playOverrideRiff(id);
       } else {
         const def = animalById(id);
         animalRiff(def.patch, def.bright, def.pitchOffset);
@@ -85,10 +101,10 @@ export function renderHome(root: HTMLElement): () => void {
     const y = rect.height * 0.52;
     drawAnimal(g, animalById(save.left), rect.width * 0.28, y, s, {
       t, squash: 0, sing: sing[0], dir: 0,
-    }, equippedOutfit(save.left) as OutfitId);
+    });
     drawAnimal(g, animalById(save.right), rect.width * 0.72, y, s, {
       t: t + 0.7, squash: 0, sing: sing[1], dir: 0,
-    }, equippedOutfit(save.right) as OutfitId);
+    });
     raf = requestAnimationFrame(loop);
   };
   raf = requestAnimationFrame(loop);

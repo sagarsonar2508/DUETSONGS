@@ -5,11 +5,11 @@
  * cheek bulges that overlap a smaller blob body, thick tails curled around
  * the front, consistent dark outlines everywhere, fur patch markings, bean
  * eyes with a single shine, tiny triangle nose, ω mouth. Females get lashes,
- * softer palettes and accessories. Outfits render as layered clothing.
+ * softer palettes and accessories.
  */
 
-import type { AnimalDef, TreatId, OutfitId } from '../data/animals';
-import { getSprite, getOutfitOverlay, SPRITE_META } from './sprites';
+import type { AnimalDef, TreatId } from '../data/animals';
+import { getSprite, SPRITE_META } from './sprites';
 
 export interface Pose {
   t: number;
@@ -465,8 +465,8 @@ function bow(p: P, x: number, y: number, color: string, k = 1): void {
   ell(p, x, y, 1.9 * U * k, 1.9 * U * k, shade(color, 0.82), true);
 }
 
-function femaleAccessory(p: P, def: AnimalDef, outfit: OutfitId): void {
-  if (def.sex !== 'f' || outfit === 'flowercrown' || outfit === 'tophat' || outfit === 'dress') return;
+function femaleAccessory(p: P, def: AnimalDef): void {
+  if (def.sex !== 'f') return;
   const x = HEAD_W * 0.3 * p.U;
   const y = (HEAD_CY - HEAD_H * 0.42) * p.U;
   if (def.species === 'chick' || def.species === 'duck') {
@@ -476,111 +476,13 @@ function femaleAccessory(p: P, def: AnimalDef, outfit: OutfitId): void {
   }
 }
 
-/* ------------------------------- outfits -------------------------------- */
-
-function outfitTorso(p: P, outfit: OutfitId): void {
-  const U = p.U;
-  const g = p.g;
-  if (outfit === 'tuxedo') {
-    bodyPath(p, (BODY_TOP + 2) * U, (BODY_BOT - 1) * U, 16.5 * U, 22.5 * U);
-    fillStroke(p, '#383842', true);
-    g.beginPath();
-    g.moveTo(-6.5 * U, (BODY_TOP + 3) * U);
-    g.lineTo(6.5 * U, (BODY_TOP + 3) * U);
-    g.lineTo(0, (BODY_TOP + 16) * U);
-    g.closePath();
-    fillStroke(p, '#ffffff', true);
-    ell(p, 0, (BODY_TOP + 19) * U, 1 * U, 1 * U, '#26262e');
-    ell(p, 0, (BODY_TOP + 23.5) * U, 1 * U, 1 * U, '#26262e');
-    bow(p, 0, (BODY_TOP + 4.5) * U, '#26262e', 0.8);
-  } else if (outfit === 'dress') {
-    g.beginPath();
-    g.moveTo(-15 * U, (BODY_TOP + 6) * U);
-    g.bezierCurveTo(-30 * U, (BODY_BOT - 4) * U, -28 * U, (BODY_BOT + 1) * U, 0, (BODY_BOT + 1) * U);
-    g.bezierCurveTo(28 * U, (BODY_BOT + 1) * U, 30 * U, (BODY_BOT - 4) * U, 15 * U, (BODY_TOP + 6) * U);
-    g.closePath();
-    fillStroke(p, '#ffffff', true);
-    g.strokeStyle = '#ecd6e2';
-    g.lineWidth = p.lw * 0.8;
-    for (let i = -2; i <= 2; i++) {
-      g.beginPath();
-      g.arc(i * 10 * U, (BODY_BOT - 1) * U, 5 * U, Math.PI * 0.12, Math.PI * 0.88);
-      g.stroke();
-    }
-    bow(p, 0, (BODY_TOP + 9) * U, '#f290b2', 0.95);
-  } else if (outfit === 'scarf') {
-    g.beginPath();
-    g.roundRect(-15 * U, (HEAD_BOTTOM + 0.5) * U, 30 * U, 6.5 * U, 3 * U);
-    fillStroke(p, '#e87a7a', true);
-    g.beginPath();
-    g.roundRect(3 * U, (HEAD_BOTTOM + 5) * U, 7 * U, 14 * U, 3 * U);
-    fillStroke(p, '#e87a7a', true);
-    g.strokeStyle = '#c05a5a';
-    g.lineWidth = p.lw * 0.7;
-    for (const yy of [14, 17]) {
-      g.beginPath();
-      g.moveTo(4 * U, (HEAD_BOTTOM + yy) * U);
-      g.lineTo(9.5 * U, (HEAD_BOTTOM + yy) * U);
-      g.stroke();
-    }
-  } else if (outfit === 'bowtie') {
-    bow(p, 0, (HEAD_BOTTOM + 3) * U, '#5aa7e8', 1.1);
-  }
-}
-
-function outfitHead(p: P, outfit: OutfitId): void {
-  const U = p.U;
-  const g = p.g;
-  const topY = (HEAD_CY - HEAD_H * 0.5) * U;
-  if (outfit === 'flowercrown') {
-    for (let i = -2; i <= 2; i++) {
-      flower(p, i * HEAD_W * 0.16 * U, topY + Math.abs(i) * 2.4 * U + 1 * U, i % 2 === 0 ? '#f290b2' : '#ffd98a', 3 * U);
-    }
-  } else if (outfit === 'tophat') {
-    g.save();
-    g.rotate(-0.05);
-    g.beginPath();
-    g.roundRect(-13 * U, topY - 20 * U, 26 * U, 20 * U, 2.5 * U);
-    fillStroke(p, '#383842', true);
-    g.beginPath();
-    g.roundRect(-18 * U, topY - 3 * U, 36 * U, 5 * U, 2.5 * U);
-    fillStroke(p, '#383842', true);
-    g.beginPath();
-    g.roundRect(-13 * U, topY - 8.5 * U, 26 * U, 5 * U, 1.5 * U);
-    fillStroke(p, '#e75f96', true);
-    g.restore();
-  } else if (outfit === 'dress') {
-    for (let i = -1; i <= 1; i++) {
-      flower(p, i * HEAD_W * 0.15 * U, topY + Math.abs(i) * 1.8 * U + 1.5 * U, '#f290b2', 2.6 * U);
-    }
-  }
-}
-
-function veilBack(p: P): void {
-  const g = p.g;
-  const U = p.U;
-  g.save();
-  g.globalAlpha = 0.5;
-  g.beginPath();
-  g.moveTo(-HEAD_W * 0.42 * U, (HEAD_CY - HEAD_H * 0.3) * U);
-  g.quadraticCurveTo(-HEAD_W * 0.85 * U, 20 * U, -HEAD_W * 0.5 * U, 46 * U);
-  g.quadraticCurveTo(0, 52 * U, HEAD_W * 0.62 * U, 42 * U);
-  g.quadraticCurveTo(HEAD_W * 0.72 * U, 8 * U, HEAD_W * 0.42 * U, (HEAD_CY - HEAD_H * 0.3) * U);
-  g.quadraticCurveTo(0, (HEAD_CY - HEAD_H * 0.62) * U, -HEAD_W * 0.42 * U, (HEAD_CY - HEAD_H * 0.3) * U);
-  g.closePath();
-  g.fillStyle = '#ffffff';
-  g.fill();
-  g.restore();
-}
-
 /* --------------------------- species drawings ---------------------------- */
 
-type SpeciesFn = (p: P, def: AnimalDef, pose: Pose, outfit: OutfitId) => void;
+type SpeciesFn = (p: P, def: AnimalDef, pose: Pose) => void;
 
-const drawCat: SpeciesFn = (p, def, pose, outfit) => {
-  if (outfit !== 'dress') drawCurlTail(p, def, pose.t, def.sex === 'm', def.sex === 'f' ? def.colors.accent : undefined);
+const drawCat: SpeciesFn = (p, def, pose) => {
+  drawCurlTail(p, def, pose.t, def.sex === 'm', def.sex === 'f' ? def.colors.accent : undefined);
   drawQuadBody(p, def);
-  outfitTorso(p, outfit);
   drawFrontPaws(p, def);
   catEar(p, def, -1, false, def.sex === 'm');
   catEar(p, def, 1);
@@ -588,18 +490,16 @@ const drawCat: SpeciesFn = (p, def, pose, outfit) => {
   if (def.sex === 'm') headPatch(p, def, -1, true);
   foreheadStripes(p, def, def.sex === 'f');
   drawFace(p, def, pose, { whiskers: true, mouth: 'cat', nose: 'tri', muzzlePatch: true });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
-const drawChick: SpeciesFn = (p, def, pose, outfit) => {
+const drawChick: SpeciesFn = (p, def, pose) => {
   const U = p.U;
   const flap = pose.sing * 4 * U;
   ell(p, -24 * U, 22 * U - flap, 7 * U, 11 * U, def.colors.accent, true, -0.35);
   ell(p, 24 * U, 22 * U - flap, 7 * U, 11 * U, def.colors.accent, true, 0.35);
   drawBodyBase(p, def);
   drawBellyPatch(p, def);
-  outfitTorso(p, outfit);
   drawPaws(p, def, def.colors.accent);
   // hair sprigs
   const g = p.g;
@@ -627,15 +527,13 @@ const drawChick: SpeciesFn = (p, def, pose, outfit) => {
   g.quadraticCurveTo(0, noseY + 0.6 * U + open * 0.4, -3.6 * U, noseY - 0.4 * U);
   fillStroke(p, shade(def.colors.accent, 0.85), true);
   drawFace(p, def, pose, { mouth: 'smile', nose: 'none', eyeDX: 10.5 });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
-const drawDog: SpeciesFn = (p, def, pose, outfit) => {
+const drawDog: SpeciesFn = (p, def, pose) => {
   const U = p.U;
-  if (outfit !== 'dress') drawCurlTail(p, def, pose.t * 2.2, false, def.colors.accent);
+  drawCurlTail(p, def, pose.t * 2.2, false, def.colors.accent);
   drawQuadBody(p, def);
-  outfitTorso(p, outfit);
   drawFrontPaws(p, def);
   drawHeadBase(p, def);
   headPatch(p, def, 1, def.sex === 'm');
@@ -653,14 +551,12 @@ const drawDog: SpeciesFn = (p, def, pose, outfit) => {
     fillStroke(p, shade(def.colors.accent, 0.98), true);
   }
   drawFace(p, def, pose, { mouth: 'cat', nose: 'oval', muzzlePatch: true });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
-const drawFrog: SpeciesFn = (p, def, pose, outfit) => {
+const drawFrog: SpeciesFn = (p, def, pose) => {
   const U = p.U;
   drawQuadBody(p, def, { pawColor: def.colors.body, legColor: def.colors.body });
-  outfitTorso(p, outfit);
   drawFrontPaws(p, def, def.colors.body);
   // eye bumps
   for (const s of [-1, 1] as const) {
@@ -693,11 +589,10 @@ const drawFrog: SpeciesFn = (p, def, pose, outfit) => {
     }
   }
   drawFace(p, def, pose, { mouth: 'wide', nose: 'none', eyeDX: 0, eyeS: 0.01, eyeY: -200 });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
-const drawOwl: SpeciesFn = (p, def, pose, outfit) => {
+const drawOwl: SpeciesFn = (p, def, pose) => {
   const U = p.U;
   ell(p, -24 * U, 20 * U, 7.5 * U, 13 * U, def.colors.accent, true, -0.25);
   ell(p, 24 * U, 20 * U, 7.5 * U, 13 * U, def.colors.accent, true, 0.25);
@@ -714,7 +609,6 @@ const drawOwl: SpeciesFn = (p, def, pose, outfit) => {
       g.stroke();
     }
   }
-  outfitTorso(p, outfit);
   drawPaws(p, def, def.colors.accent);
   // ear tufts
   for (const s of [-1, 1] as const) {
@@ -740,11 +634,10 @@ const drawOwl: SpeciesFn = (p, def, pose, outfit) => {
   p.g.closePath();
   fillStroke(p, '#e8b45e', true);
   drawFace(p, def, pose, { mouth: 'smile', nose: 'none', eyeDX: 10, eyeS: 1.25 });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
-const drawDuck: SpeciesFn = (p, def, pose, outfit) => {
+const drawDuck: SpeciesFn = (p, def, pose) => {
   const U = p.U;
   const g = p.g;
   // tail flick behind
@@ -758,7 +651,6 @@ const drawDuck: SpeciesFn = (p, def, pose, outfit) => {
   ell(p, 23 * U, 21 * U, 7 * U, 11.5 * U, shade(def.colors.body, 0.95), true, 0.3);
   drawBodyBase(p, def);
   drawBellyPatch(p, def);
-  outfitTorso(p, outfit);
   drawPaws(p, def, '#f5a95e');
   // head swoosh
   g.strokeStyle = OUTLINE;
@@ -783,32 +675,28 @@ const drawDuck: SpeciesFn = (p, def, pose, outfit) => {
   g.quadraticCurveTo(0, noseY + 0.6 * U + open * 0.4, -8.5 * U, noseY - 0.6 * U);
   fillStroke(p, '#e8954a', true);
   drawFace(p, def, pose, { mouth: 'smile', nose: 'none', eyeDX: 11 });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
-const drawFox: SpeciesFn = (p, def, pose, outfit) => {
-  if (outfit !== 'dress') drawCurlTail(p, def, pose.t, false, def.colors.belly);
+const drawFox: SpeciesFn = (p, def, pose) => {
+  drawCurlTail(p, def, pose.t, false, def.colors.belly);
   drawQuadBody(p, def);
-  outfitTorso(p, outfit);
   drawFrontPaws(p, def);
   catEar(p, def, -1, true, true);
   catEar(p, def, 1, true, true);
   drawHeadBase(p, def);
   headPatch(p, def, 1, def.sex === 'm');
   drawFace(p, def, pose, { mouth: 'cat', nose: 'oval', muzzlePatch: true, whiskers: true });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
-const drawPanda: SpeciesFn = (p, def, pose, outfit) => {
+const drawPanda: SpeciesFn = (p, def, pose) => {
   const U = p.U;
   drawQuadBody(p, def, {
     legColor: def.colors.accent,
     hindColor: def.colors.accent,
     pawColor: shade(def.colors.accent, 1.5),
   });
-  outfitTorso(p, outfit);
   drawFrontPaws(p, def, shade(def.colors.accent, 1.5));
   // round ears
   for (const s of [-1, 1] as const) {
@@ -820,8 +708,7 @@ const drawPanda: SpeciesFn = (p, def, pose, outfit) => {
     ell(p, s * 11 * U, (HEAD_CY + 3) * U, 6.5 * U, 7.5 * U, def.colors.accent, false, s * 0.3);
   }
   drawFace(p, def, pose, { mouth: 'smile', nose: 'oval', eyeS: 0.9 });
-  femaleAccessory(p, def, outfit);
-  outfitHead(p, outfit);
+  femaleAccessory(p, def);
 };
 
 const SPECIES_FN: Record<string, SpeciesFn> = {
@@ -845,7 +732,6 @@ export function drawAnimal(
   y: number,
   size: number,
   pose: Pose,
-  outfit: OutfitId = 'none',
 ): void {
   const U = size / 100;
   const p: P = { g, U, lw: Math.max(1.2, 1.7 * U) };
@@ -863,14 +749,12 @@ export function drawAnimal(
 
   // designer-grade sculpted sprite path (falls back to parametric while
   // the sprite decodes or if the species has no sculpt yet)
-  const sprite = getSprite(def, outfit, pose.sing > 0.35);
+  const sprite = getSprite(def, pose.sing > 0.35);
   if (sprite) {
     // sprite viewBox is 100 units with ground at y≈92; align ground to +49U
     g.drawImage(sprite.img, -size / 2, -size * 0.43, size, size);
     if (sprite.custom) {
-      // user artwork: outfits render as a standard overlay layer, no blink
-      const overlay = getOutfitOverlay(outfit);
-      if (overlay) g.drawImage(overlay, -size / 2, -size * 0.43, size, size);
+      // user artwork: no procedural blink overlay
       g.restore();
       return;
     }
@@ -902,8 +786,7 @@ export function drawAnimal(
     return;
   }
 
-  if (outfit === 'dress') veilBack(p);
-  (SPECIES_FN[def.species] ?? drawCat)(p, def, pose, outfit);
+  (SPECIES_FN[def.species] ?? drawCat)(p, def, pose);
   g.restore();
 }
 
@@ -1055,6 +938,84 @@ function drawTreatIcon(g: Ctx, treat: TreatId, r: number): void {
         g.stroke();
       }
       ei(r * 0.5, -r * 0.55, r * 0.38, r * 0.15, '#6fbf6a', -0.6);
+      break;
+    case 'bolt': {
+      // hex nut with a threaded bolt through it
+      g.fillStyle = '#b8c4d4';
+      g.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i + Math.PI / 6;
+        const px = Math.cos(a) * r * 0.72;
+        const py = Math.sin(a) * r * 0.72;
+        if (i === 0) g.moveTo(px, py);
+        else g.lineTo(px, py);
+      }
+      g.closePath();
+      g.fill();
+      ei(0, 0, r * 0.3, r * 0.3, '#8a98ac');
+      g.strokeStyle = '#8a98ac';
+      g.lineWidth = r * 0.08;
+      g.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i + Math.PI / 6;
+        const px = Math.cos(a) * r * 0.72;
+        const py = Math.sin(a) * r * 0.72;
+        if (i === 0) g.moveTo(px, py);
+        else g.lineTo(px, py);
+      }
+      g.closePath();
+      g.stroke();
+      break;
+    }
+    case 'gem':
+      // faceted diamond
+      g.fillStyle = '#8fd8e8';
+      g.beginPath();
+      g.moveTo(-r * 0.7, -r * 0.2);
+      g.lineTo(-r * 0.35, -r * 0.6);
+      g.lineTo(r * 0.35, -r * 0.6);
+      g.lineTo(r * 0.7, -r * 0.2);
+      g.lineTo(0, r * 0.75);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.75)';
+      g.lineWidth = r * 0.08;
+      g.beginPath();
+      g.moveTo(-r * 0.7, -r * 0.2);
+      g.lineTo(r * 0.7, -r * 0.2);
+      g.moveTo(-r * 0.35, -r * 0.6);
+      g.lineTo(-r * 0.18, -r * 0.2);
+      g.lineTo(0, r * 0.75);
+      g.moveTo(r * 0.35, -r * 0.6);
+      g.lineTo(r * 0.18, -r * 0.2);
+      g.lineTo(0, r * 0.75);
+      g.stroke();
+      break;
+    case 'candy':
+      // wrapped bonbon with twisted ends
+      g.fillStyle = '#f2a2c8';
+      g.beginPath();
+      g.moveTo(-r * 0.55, 0);
+      g.lineTo(-r * 0.95, -r * 0.42);
+      g.lineTo(-r * 0.8, 0);
+      g.lineTo(-r * 0.95, r * 0.42);
+      g.closePath();
+      g.moveTo(r * 0.55, 0);
+      g.lineTo(r * 0.95, -r * 0.42);
+      g.lineTo(r * 0.8, 0);
+      g.lineTo(r * 0.95, r * 0.42);
+      g.closePath();
+      g.fill();
+      ei(0, 0, r * 0.58, r * 0.5, '#f8bcd8');
+      g.strokeStyle = '#e87ab0';
+      g.lineWidth = r * 0.1;
+      g.lineCap = 'round';
+      for (const k of [-0.28, 0, 0.28]) {
+        g.beginPath();
+        g.moveTo(k * r - r * 0.12, -r * 0.42);
+        g.quadraticCurveTo(k * r + r * 0.12, 0, k * r - r * 0.12, r * 0.42);
+        g.stroke();
+      }
       break;
   }
 }

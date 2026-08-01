@@ -15,6 +15,7 @@ export function renderSongs(root: HTMLElement): () => void {
     return `
       <button class="song-card ${unlocked ? '' : 'locked'}" data-id="${s.id}"
               style="--card-a:${s.theme.top};--card-b:${s.theme.bottom};--card-accent:${s.theme.accent}">
+        <span class="song-poster"><img src="/posters/${s.id}.png" alt="" /></span>
         <div class="song-card-main">
           <div class="song-title">${s.title}</div>
           <div class="song-meta">${s.composer} · ${DIFFICULTY_LABEL[s.difficulty]} ${difficultyDots(s.difficulty)}</div>
@@ -40,6 +41,12 @@ export function renderSongs(root: HTMLElement): () => void {
     uiSound('tap');
     router.go('home');
   });
+
+  // posters are optional files (public/posters/<songId>.png, installed by
+  // the admin studio) — cards without one just keep their gradient
+  root.querySelectorAll('.song-poster img').forEach((img) =>
+    img.addEventListener('error', () => (img.closest('.song-poster') as HTMLElement).remove()),
+  );
 
   root.querySelectorAll('.song-card').forEach((card) =>
     card.addEventListener('click', () => {
